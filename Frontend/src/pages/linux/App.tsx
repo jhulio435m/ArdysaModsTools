@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { api, connect, type Installation, type Preferences, type Status } from "./api";
 
+type CatalogHero = { id: string; name: string; sets: { name: string; assetPath: string; sha256: string }[] };
+
 type Tab = "mods" | "vpk" | "generate" | "download" | "performance";
 const tabs: { id: Tab; label: string }[] = [
    { id: "mods", label: "Mods" }, { id: "vpk", label: "Archivos VPK" },
@@ -21,6 +23,9 @@ export default function App() {
    const [buildOutput, setBuildOutput] = useState("");
    const [fpsMax, setFpsMax] = useState("120");
    const [menuFps, setMenuFps] = useState("60");
+   const [catalog, setCatalog] = useState<CatalogHero[]>([]);
+   const [heroId, setHeroId] = useState("");
+   const [assetPath, setAssetPath] = useState("");
    const [recipe, setRecipe] = useState("");
    const [url, setUrl] = useState("");
    const [sha, setSha] = useState("");
@@ -57,7 +62,9 @@ export default function App() {
       controller.current = new AbortController();
       try {
          const value = await api<unknown>(path, body, controller.current.signal);
-         if (value !== null) setResult(JSON.stringify(value, null, 2));
+         if (path === "catalog") setCatalog(value as CatalogHero[]);
+         if (path === "catalog/generate") setInput(output);
+         if (value !== null && path !== "catalog") setResult(JSON.stringify(value, null, 2));
          setMessage(success); await refresh();
       } catch (e: unknown) {
          setError(e instanceof Error && e.name === "AbortError"
@@ -134,7 +141,17 @@ export default function App() {
             </section>}
             {tab === "generate" && <section aria-labelledby="generate-title"><h2 id="generate-title">Generar una selección</h2>
                <p>Una receta describe los archivos, sus hashes y los elementos seleccionados. La generación usa el items_game de tu Dota actual.</p>
-               <p className="secondary">La galería visual completa de héroes todavía requiere conectar los catálogos del proyecto original.</p>
+               <h3>Catálogo del proyecto original</h3>
+               <p>Selecciona un héroe y un set. Se descarga del CDN original, se verifica su SHA-256 y se genera el VPK usando tu Dota actual. Paquetes cifrados o divididos todavía no son compatibles.</p>
+               <button disabled={!ready || busy} onClick={() => void action("catalog", undefined, "Catálogo cargado.")}>Cargar catálogo</button>
+               <form onSubmit={e => submit(e, "catalog/generate", { heroId, assetPath, output }, "Set descargado y VPK generado. Ve a Mods para instalarlo.")}>
+                  <label htmlFor="catalog-hero">Héroe</label><select id="catalog-hero" value={heroId} disabled={busy} required onChange={e => { setHeroId(e.target.value); setAssetPath(""); }}>
+                     <option value="">Selecciona un héroe</option>{catalog.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}</select>
+                  <label htmlFor="catalog-set">Set</label><select id="catalog-set" value={assetPath} disabled={busy} required onChange={e => setAssetPath(e.target.value)}>
+                     <option value="">Selecciona un set</option>{catalog.find(h => h.id === heroId)?.sets.map(s => <option key={s.assetPath} value={s.assetPath}>{s.name}</option>)}</select>
+                  <label htmlFor="catalog-output">VPK de salida (archivo nuevo)</label><input id="catalog-output" value={output} onChange={e => setOutput(e.target.value)} required placeholder="/home/blink/downloads/seleccion_dir.vpk" />
+                  <button className="primary" disabled={!ready || busy || !root || !assetPath}>Descargar y generar set</button>
+               </form><h3>Receta avanzada</h3>
                <form onSubmit={e => submit(e, "generate", { recipe, output }, "Selección generada y VPK verificado.")}>
                   <label htmlFor="recipe">Receta JSON</label><input id="recipe" value={recipe} onChange={e => setRecipe(e.target.value)} required placeholder="/ruta/seleccion.json" />
                   <label htmlFor="generated-output">VPK de salida</label><input id="generated-output" value={output} onChange={e => setOutput(e.target.value)} required placeholder="/ruta/seleccion_dir.vpk" />

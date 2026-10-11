@@ -19,14 +19,14 @@ nav a { margin: 24px 12px; color: #b3b3b3; text-underline-offset: 4px; }
 main { min-width: 0; padding: 32px 36px 64px; }
 .installation { padding-bottom: 26px; margin-bottom: 30px; border-bottom: 1px solid var(--hairline); }
 label { display: block; margin: 18px 0 8px; color: #c4c4c4; }
-input { width: 100%; min-width: 0; min-height: 44px; padding: 11px 13px; border: 1px solid var(--hairline-strong); border-radius: 0; background: var(--panel-2); color: var(--ink); font: inherit; caret-color: var(--ink); }
+input, select { width: 100%; min-width: 0; min-height: 44px; padding: 11px 13px; border: 1px solid var(--hairline-strong); border-radius: 0; background: var(--panel-2); color: var(--ink); font: inherit; caret-color: var(--ink); }
 input::placeholder { color: #929292; }
 button { min-height: 44px; padding: 10px 16px; background: var(--panel-2); border: 1px solid var(--hairline-strong); color: var(--ink); font: inherit; cursor: pointer; }
 button:hover:not(:disabled) { background: #242424; }
 nav button[aria-current]:hover:not(:disabled) { background: #d5d5d5; color: var(--canvas); }
 button.primary { background: var(--ink); color: var(--canvas); border-color: var(--ink); }
 button.primary:hover:not(:disabled) { background: #d5d5d5; }
-button:disabled, input:disabled { opacity: .5; cursor: not-allowed; }
+button:disabled, input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 form > button { margin-top: 18px; }
 .input-row { display: flex; gap: 12px; }

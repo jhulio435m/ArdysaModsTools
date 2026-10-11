@@ -5,7 +5,7 @@ using ArdysaModsTools.Core.Services;
 namespace ArdysaModsTools.Linux;
 
 public sealed record RecipeAsset(string Path, string Sha256, string[] Urls, bool ExtractZip = false);
-public sealed record RecipePatch(string HeroId, int[] ItemIds, string IndexPath);
+public sealed record RecipePatch(string HeroId, int[] ItemIds, string IndexPath, bool AllowSubset = false);
 public sealed record GenerationRecipe(string Name, RecipeAsset[] Assets, RecipePatch[] Patches);
 
 /// <summary>Builds a selection from integrity-pinned assets and the current native game's items_game.</summary>
@@ -56,7 +56,7 @@ public sealed class GenerationService
                     var index = LinuxPaths.SafeChild(workspace, patch.IndexPath);
                     var parsed = patcher.ParseIndexText(await File.ReadAllTextAsync(index, ct), patch.HeroId, patch.ItemIds)
                         ?? throw new InvalidDataException($"Invalid index for hero {patch.HeroId}.");
-                    if (patch.ItemIds.Any(id => !parsed.ContainsKey(id.ToString(System.Globalization.CultureInfo.InvariantCulture))))
+                    if (parsed.Count == 0 || (!patch.AllowSubset && patch.ItemIds.Any(id => !parsed.ContainsKey(id.ToString(System.Globalization.CultureInfo.InvariantCulture)))))
                         throw new InvalidDataException($"The index is missing requested items for hero {patch.HeroId}.");
                     foreach (var pair in parsed)
                         if (!blocks.TryAdd(pair.Key, pair.Value)) throw new InvalidDataException($"Conflicting item {pair.Key}.");

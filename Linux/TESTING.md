@@ -45,3 +45,9 @@ Si aparece un conflicto, conserva el estado y los respaldos; no borres manualmen
 - Auditoría npm sin vulnerabilidades; revisión de paquetes .NET sin hallazgos conocidos en las fuentes consultadas.
 
 No se ha validado un mod cosmético dentro de Dota. No hay release pública de binarios ni paridad completa con la galería original.
+
+## Descargar desde el catálogo original
+
+En **Generar selección**, pulsa **Cargar catálogo**, elige héroe y set, y escribe una ruta nueva para el VPK. **Descargar y generar set** verifica el SHA-256 del manifiesto del CDN original y usa el items_game de la instalación actual. Después puedes ir a **Mods** e instalar ese VPK con el montaje experimental habilitado.
+
+Este primer selector maneja ZIP completos con index.txt. No incluye paquetes divididos, cifrados, estilos/personas ni el ModsPack completo. Blightfall de Abaddon fue descargado y generado como prueba real; la apariencia dentro de Dota aún requiere comprobación.

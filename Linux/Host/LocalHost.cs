@@ -10,6 +10,7 @@ namespace ArdysaModsTools.Linux;
 
 internal static class LocalHost
 {
+    public sealed record CatalogRequest(string HeroId, string AssetPath, string Output);
     public sealed record SessionRequest(string Token);
     public sealed record FileRequest(string Input, string Output);
     public sealed record BuildRequest(string Source, string Output);
@@ -74,7 +75,7 @@ internal static class LocalHost
                 }
                 await next(context);
             }
-            catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or InvalidOperationException or ArgumentException or System.Text.Json.JsonException)
+            catch (Exception ex) when (ex is HttpRequestException or IOException or InvalidDataException or UnauthorizedAccessException or InvalidOperationException or ArgumentException or System.Text.Json.JsonException)
             {
                 context.Response.StatusCode = 400;
                 await context.Response.WriteAsJsonAsync(new { error = ex.Message }, context.RequestAborted);
@@ -88,6 +89,10 @@ internal static class LocalHost
             { HttpOnly = true, SameSite = SameSiteMode.Strict, IsEssential = true, Path = "/api" });
             return Results.Ok();
         });
+        var catalog = new HeroCatalog();
+        app.MapGet("/api/catalog", async (CancellationToken cancellation) => await catalog.LoadAsync(cancellation));
+        app.MapPost("/api/catalog/generate", async (CatalogRequest value, CancellationToken cancellation) =>
+        { await catalog.GenerateAsync(Root(), value.HeroId, value.AssetPath, value.Output, cancellation); return Results.Ok(); });
         app.MapGet("/api/detect", () => new SteamDetector().Detect());
         app.MapGet("/api/preferences", preferences.Load);
         app.MapPost("/api/preferences", (Preferences value) => { preferences.Save(value); return Results.Ok(); });

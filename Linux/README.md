@@ -33,6 +33,7 @@ El frontend original para WebView2 sigue separado. La nueva interfaz Linux no re
 ## Límites explícitos
 
 - El montaje Linux es una hipótesis de implementación que debe validarse. Se modifica `game/dota/gameinfo.gi` mediante una entrada `Game _ArdysaModsLinux`; **no se copian las firmas, hashes o plantillas Windows ni se altera `dota.signatures`**. Si el juego rechaza esta configuración, se revisa el método antes de activar automatismos.
+- El selector básico descarga ZIP completos desde el catálogo original y genera un set de héroe con SHA-256 verificado. Los archivos cifrados y divididos no están soportados.
 - La galería visual, selección por slots, Personas, Prismatic, todos los mods misceláneos y el ModsPack automático no están conectados todavía al host Linux.
 - Las recetas esperan URLs y hashes de fuentes confiables. El ejemplo vacío documenta el formato; no es un mod listo para instalar.
 - El escritor crea VPK de archivo único con hasta `uint.MaxValue` bytes de datos. Para packs mayores se necesita implementar salida dividida. El lector sí admite paquetes divididos existentes.
