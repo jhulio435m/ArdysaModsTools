@@ -33,7 +33,7 @@ El frontend original para WebView2 sigue separado. La nueva interfaz Linux no re
 ## Límites explícitos
 
 - El montaje Linux es una hipótesis de implementación que debe validarse. Se modifica `game/dota/gameinfo.gi` mediante una entrada `Game _ArdysaModsLinux`; **no se copian las firmas, hashes o plantillas Windows ni se altera `dota.signatures`**. Si el juego rechaza esta configuración, se revisa el método antes de activar automatismos.
-- El selector básico descarga ZIP completos desde el catálogo original y genera un set de héroe con SHA-256 verificado. Los archivos cifrados y divididos no están soportados.
+- El selector básico incluye variantes de estilo publicadas como ZIP completos y descarga ZIP completos desde el catálogo original y genera un set de héroe con SHA-256 verificado. Los archivos cifrados y divididos no están soportados.
 - La galería visual, selección por slots, Personas, Prismatic, todos los mods misceláneos y el ModsPack automático no están conectados todavía al host Linux.
 - Las recetas esperan URLs y hashes de fuentes confiables. El ejemplo vacío documenta el formato; no es un mod listo para instalar.
 - El escritor crea VPK de archivo único con hasta `uint.MaxValue` bytes de datos. Para packs mayores se necesita implementar salida dividida. El lector sí admite paquetes divididos existentes.
@@ -117,3 +117,11 @@ Las propiedades JSON se leen sin distinguir mayúsculas:
 Para aplicar patches se extrae y verifica `scripts/items/items_game.txt` del VPK del Dota instalado. El parcheador enlazado del proyecto original combina los bloques seleccionados. Los índices usados se retiran del contenido de salida. La generación no instala el paquete automáticamente.
 
 No se incluyen URLs, hashes, IDs o catálogos inventados. El espejo público original tampoco incluye `tools/`; esta edición evita depender de ellos.
+
+## Preparar varios héroes
+
+`generate-all --output /ruta/paquete_dir.vpk --report /ruta/seleccion.json` elige el primer set compatible de cada héroe, verifica sus hashes y genera una tabla de objetos combinada. No instala automáticamente. El informe identifica héroes sin paquete compatible; no debe presentarse una selección parcial como cobertura total. Opcionalmente `--base /ruta/base_dir.vpk --base-report /ruta/base.json` conserva una selección generada anteriormente y reintenta los héroes omitidos.
+
+Los conflictos reales de modelos impiden combinar un candidato. Se conserva el primer logo del autor cuando varios sets traen versiones distintas; modelos de otro héroe sin referencia en el set se omiten en caso de conflicto. No se modifican las firmas de Windows.
+
+`--local-fallback` con `--base` conserva los sets descargados y, para héroes omitidos, selecciona modelos de cosméticos que ya existen en el VPK del juego. Solo cambia el modelo de objetos predeterminados del mismo héroe y slot; no convierte Personas. `--only ID_DEL_HERO` permite reintentar un héroe omitido. Los sonidos duplicados se resuelven a favor del héroe nombrado por la ruta del recurso.

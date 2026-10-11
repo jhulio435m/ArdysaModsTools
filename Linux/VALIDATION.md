@@ -40,3 +40,13 @@ No se instaló ningún mod en la instalación real ni se cambiaron sus configura
 # Catálogo original — 11 octubre 2026
 
 La carga real del CDN expuso 126 héroes. Chromium seleccionó Abaddon / Blightfall y completó descarga y generación por API (200), sin errores de página ni overflow móvil. El ZIP coincide con el SHA-256 de Assets/asset_hashes.json. El VPK generado ocupa aproximadamente 51 MiB y pasa la verificación CRC de todas sus entradas. Las 17 pruebas NUnit y el typecheck Linux pasan tras el ajuste de sets parciales. No se instaló el set ni se modificó Dota; montaje y apariencia dentro del juego siguen pendientes.
+
+## Paquete combinado instalado — 11 octubre 2026
+
+- Generación por catálogo: 123 héroes con assets SHA-256 verificados; fallback local del juego para Bristleback (5 slots) y Enigma (3 slots). Total: 125 de 126. Kez no tiene un set alternativo disponible.
+- VPK final: 1.746 entradas, aproximadamente 322 MiB; todas las entradas pasan CRC.
+- Tabla combinada: 740 bloques predeterminados encontrados y 588 referencias a modelos comprobadas contra assets del mod y del VPK del juego; cero modelos faltantes.
+- 18 pruebas NUnit pasan.
+- Arranque nativo de diagnóstico con Steam cerrado: el registro del motor enumera el VPK administrado en GAME y MOD antes del VPK original. Confirma el montaje, no la apariencia de los 125 héroes ni una sesión online; SteamAPI no inició en esa ejecución.
+- Instalación reversible mediante ModManager y respaldo original de gameinfo.gi. No se modificaron firmas ni opciones de lanzamiento de Steam.
+- Informe de selección local: artifacts/heroes-final-report.json. Regeneración, informe e instalación quedan preparados para la próxima prueba visual del usuario.

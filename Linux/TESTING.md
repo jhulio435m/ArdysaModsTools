@@ -51,3 +51,9 @@ No se ha validado un mod cosmético dentro de Dota. No hay release pública de b
 En **Generar selección**, pulsa **Cargar catálogo**, elige héroe y set, y escribe una ruta nueva para el VPK. **Descargar y generar set** verifica el SHA-256 del manifiesto del CDN original y usa el items_game de la instalación actual. Después puedes ir a **Mods** e instalar ese VPK con el montaje experimental habilitado.
 
 Este primer selector maneja ZIP completos con index.txt. No incluye paquetes divididos, cifrados, estilos/personas ni el ModsPack completo. Blightfall de Abaddon fue descargado y generado como prueba real; la apariencia dentro de Dota aún requiere comprobación.
+
+## Selección instalada para abrir Dota
+
+El paquete combinado preparado el 11 de octubre está en `artifacts/heroes-final_dir.vpk`; el informe completo está en `artifacts/heroes-final-report.json`. Incluye 125 de los 126 héroes del catálogo: 123 con paquetes del CDN y Bristleback/Enigma con modelos cosméticos del juego. Kez conserva su apariencia original porque no tiene alternativas en el catálogo ni modelos de cosméticos alternativos en esta instalación.
+
+Esta selección reemplaza objetos predeterminados; piezas equipadas de otros sets pueden seguir mostrando sus propios modelos. La aplicación puede desactivar todo y restaurar el gameinfo original con su respaldo. No hace falta ejecutar la aplicación antes de cada arranque de Dota. Una actualización de Steam puede requerir reaplicar el montaje o regenerar la tabla de objetos.

@@ -38,9 +38,16 @@ public sealed class HeroCatalog
         foreach (var hero in catalog.RootElement.EnumerateArray())
         {
             var sets = new List<CatalogSet>();
+            var candidates = new List<(string Name, JsonElement Value)>();
             foreach (var set in hero.GetProperty("sets").EnumerateObject())
             {
-                if (set.Value.ValueKind != JsonValueKind.Array) continue;
+                if (set.Value.ValueKind == JsonValueKind.Array) candidates.Add((set.Name, set.Value));
+                else if (set.Value.ValueKind == JsonValueKind.Object && set.Value.TryGetProperty("styles", out var styles))
+                    foreach (var style in styles.EnumerateObject())
+                        if (style.Value.ValueKind == JsonValueKind.Array) candidates.Add((set.Name + " / " + style.Name, style.Value));
+            }
+            foreach (var set in candidates)
+            {
                 var url = set.Value.EnumerateArray().Select(v => v.GetString())
                     .FirstOrDefault(v => v is not null && v.StartsWith(Base, StringComparison.Ordinal)
                         && v.EndsWith(".zip", StringComparison.OrdinalIgnoreCase));

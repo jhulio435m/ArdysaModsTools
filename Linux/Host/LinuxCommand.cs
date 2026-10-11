@@ -14,7 +14,7 @@ internal static class LinuxCommand
         {
             var key = args[i];
             if (!key.StartsWith("--", StringComparison.Ordinal)) throw new ArgumentException("Use named --options.\n" + Help);
-            var value = key is "--experimental" or "--no-browser" ? "true"
+            var value = key is "--experimental" or "--no-browser" or "--local-fallback" ? "true"
                 : ++i < args.Length ? args[i] : throw new ArgumentException($"Missing value for {key}.");
             if (!options.TryAdd(key, value)) throw new ArgumentException($"Duplicate option {key}.");
         }
@@ -30,6 +30,7 @@ internal static class LinuxCommand
             "vpk-extract-entry" => ["--input", "--entry", "--output"],
             "vpk-build" => ["--source", "--output"],
             "generate" => ["--root", "--recipe", "--output"],
+            "generate-all" => ["--root", "--output", "--report", "--base", "--base-report", "--only", "--local-fallback"],
             "download" => ["--url", "--sha256", "--output"],
             _ => throw new ArgumentException("Unknown command.\n" + Help)
         };
@@ -57,6 +58,8 @@ internal static class LinuxCommand
             case "vpk-extract-entry": await new VpkArchive(Required("--input")).ExtractEntryAsync(Required("--entry"), Required("--output"), ct); break;
             case "vpk-build": await VpkArchive.BuildAsync(Required("--source"), Required("--output"), ct); break;
             case "generate": await new GenerationService().GenerateAsync(Root(), Required("--recipe"), Required("--output"), ct); break;
+            case "generate-all": await new AllHeroesGenerator().GenerateAsync(Root(), Required("--output"), Required("--report"), Console.WriteLine, ct,
+                options.GetValueOrDefault("--base"), options.GetValueOrDefault("--base-report"), options.GetValueOrDefault("--only"), options.ContainsKey("--local-fallback")); break;
             case "download":
                 using (var downloader = new AssetDownloader())
                     await downloader.DownloadAsync([Required("--url")], Required("--sha256"), Required("--output"), ct);
@@ -83,6 +86,7 @@ internal static class LinuxCommand
         vpk-build --source DIR --output FILE    Build a standalone VPK v1 (less than 4 GiB)
         download --url HTTPS --sha256 HASH --output FILE
         generate --recipe JSON --output FILE [--root PATH]
+        generate-all --output FILE --report JSON [--root PATH]
         install --input VPK --experimental [--root PATH]
         disable [--root PATH]                   Restore managed gameinfo and remove Linux mod VPK
         reapply --experimental [--root PATH]    Rebase the mount onto a Steam-updated gameinfo
