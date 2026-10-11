@@ -40,4 +40,3 @@ No se instaló ningún mod en la instalación real ni se cambiaron sus configura
 # Catálogo original — 11 octubre 2026
 
 La carga real del CDN expuso 126 héroes. Chromium seleccionó Abaddon / Blightfall y completó descarga y generación por API (200), sin errores de página ni overflow móvil. El ZIP coincide con el SHA-256 de Assets/asset_hashes.json. El VPK generado ocupa aproximadamente 51 MiB y pasa la verificación CRC de todas sus entradas. Las 17 pruebas NUnit y el typecheck Linux pasan tras el ajuste de sets parciales. No se instaló el set ni se modificó Dota; montaje y apariencia dentro del juego siguen pendientes.
-
