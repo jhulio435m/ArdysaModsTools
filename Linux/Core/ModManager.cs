@@ -108,7 +108,8 @@ public sealed class ModManager(Func<bool>? isGameRunning = null)
         if (matches.Count != 1) throw new InvalidDataException("Expected exactly one SearchPaths block in gameinfo.gi.");
         var newline = original.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
         return original.Insert(matches[0].Index + matches[0].Length,
-            newline + "\t\t\t" + Marker + newline + "\t\t\tGame\t\t_ArdysaModsLinux");
+            newline + "\t\t\t" + Marker + newline + "\t\t\tGame\t\t_ArdysaModsLinux"
+            + newline + "\t\t\tMod\t\t_ArdysaModsLinux");
     }
     private static InstalledMod? ReadState(string root)
     {

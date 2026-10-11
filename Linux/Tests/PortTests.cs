@@ -123,6 +123,7 @@ public sealed class PortTests
         var patched = ModManager.PatchGameInfo(original);
         Assert.That(patched, Does.Contain("Game dota\r\n Game core"));
         Assert.That(patched.IndexOf("_ArdysaModsLinux", StringComparison.Ordinal), Is.LessThan(patched.IndexOf("Game dota", StringComparison.Ordinal)));
+        Assert.That(patched, Does.Contain("Mod\t\t_ArdysaModsLinux"));
         Assert.Throws<InvalidDataException>(() => ModManager.PatchGameInfo(patched));
     }
     [Test]
