@@ -10,8 +10,9 @@ public sealed record InstalledMod(string VpkSha256, string PatchedGameInfoSha256
 public sealed record ModState(bool Installed, bool GameRunning, bool PatchChanged, bool BuildChanged,
     bool RecoveryRequired, InstalledMod? Details);
 
-public sealed class ModManager
+public sealed class ModManager(Func<bool>? isGameRunning = null)
 {
+    private readonly Func<bool> gameRunning = isGameRunning ?? SteamDetector.GameRunning;
     public const string ModsDirectory = "game/_ArdysaModsLinux";
     public const string VpkPath = ModsDirectory + "/pak01_dir.vpk";
     public const string StatePath = ModsDirectory + "/state.json";
@@ -23,7 +24,7 @@ public sealed class ModManager
     {
         var state = ReadState(root);
         var changed = state is not null && FileTransaction.Hash(LinuxPaths.SafeChild(root, GameInfoPath)) != state.PatchedGameInfoSha256;
-        return new(state is not null, SteamDetector.GameRunning(), changed,
+        return new(state is not null, gameRunning(), changed,
             state is not null && state.BuildId != SteamDetector.BuildId(root),
             File.Exists(LinuxPaths.SafeChild(root, ".ardysa-linux-transaction/journal.json")), state);
     }
@@ -31,7 +32,7 @@ public sealed class ModManager
     {
         if (!experimental) throw new InvalidOperationException("Linux mounting is unverified. Enable experimental mode explicitly.");
         RequireGame(root);
-        using var transaction = new FileTransaction(root);
+        using var transaction = new FileTransaction(root, gameRunning);
         var existing = ReadState(root);
         if (existing is null && Directory.Exists(LinuxPaths.SafeChild(root, ModsDirectory))
             && Directory.EnumerateFileSystemEntries(LinuxPaths.SafeChild(root, ModsDirectory)).Any())
@@ -71,7 +72,7 @@ public sealed class ModManager
     public async Task DisableAsync(string root, CancellationToken ct = default)
     {
         RequireGame(root);
-        using var transaction = new FileTransaction(root);
+        using var transaction = new FileTransaction(root, gameRunning);
         var state = ReadState(root) ?? throw new IOException("No managed Linux mod installation was found.");
         var info = LinuxPaths.SafeChild(root, GameInfoPath);
         var currentText = await File.ReadAllTextAsync(info, ct);
@@ -115,11 +116,11 @@ public sealed class ModManager
         return File.Exists(file) ? JsonSerializer.Deserialize<InstalledMod>(File.ReadAllText(file))
             ?? throw new InvalidDataException("Invalid mod state.") : null;
     }
-    private static void RequireGame(string root)
+    private void RequireGame(string root)
     {
         if (!SteamDetector.Validate(root)) throw new DirectoryNotFoundException("Select a native Linux Dota 2 installation.");
         LinuxPaths.EnsureNoLinks(root);
-        if (SteamDetector.GameRunning()) throw new IOException("Close Dota 2 before changing game files.");
+        if (gameRunning()) throw new IOException("Close Dota 2 before changing game files.");
         if (SteamDetector.SteamUpdateInProgress(root)) throw new IOException("Wait for Steam to finish updating Dota 2.");
     }
 }

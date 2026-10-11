@@ -21,3 +21,19 @@ La inspección del juego se hizo con Python; **no demuestra que la implementaci�
 - No se hizo entrega de binarios, release, prueba de actualización real, recuperación ante corte de energía ni revisión de dependencias restauradas.
 
 El resultado entregable es una rama de código fuente experimental y su plan de validación, no una afirmación de paridad funcional completa o de compatibilidad dentro del juego.
+
+## Preparación posterior para pruebas locales
+
+La instrucción posterior del usuario autorizó compilar y dejar la aplicación lista para probar. Se instaló el SDK oficial .NET 8.0.425 por usuario y se publicaron artefactos self-contained Linux x86_64. Esta evidencia reemplaza el estado inicial de fuente sin compilar; las limitaciones de paridad y montaje dentro del juego siguen vigentes.
+
+- Compilación Release y publicación del host aprobadas; se corrigió el enlace faltante a HeroDefaultItemRegistry.
+- 17 pruebas NUnit aprobadas, 0 fallos y 0 omitidas. La comprobación del proceso Dota es inyectable en fixtures, para no bloquear pruebas temporales cuando el juego real está abierto; en producción conserva el bloqueo real.
+- Typecheck específico de Linux y build Vite aprobados. El typecheck global del espejo original falla por módulos/tipos ausentes en pantallas Windows que no se incluyen en Linux.
+- Se retiró vite-plugin-singlefile y su cadena micromatch/braces vulnerable, y se actualizó source-map-js. Auditoría npm: 0 vulnerabilidades. La compatibilidad de la página embebida Windows progress se comprobó con build e inline de JS/CSS.
+- Revisión NuGet del núcleo: sin paquetes vulnerables conocidos en las fuentes consultadas.
+- Chromium aprobó sesión local, detección, preferencias, VPK verify/list/extract/build, rechazo de sesión/origen no válido y descarga a host no permitido. Sin errores JavaScript; capturas escritorio/móvil inspeccionadas. Se corrigió el contraste del hover de la pestaña seleccionada.
+- El ejecutable C# extrajo y verificó por CRC los 52331384 bytes de items_game.txt desde el VPK real, guardándolos únicamente en una carpeta temporal.
+- La instalación por usuario y el launcher funcionan; la entrada .desktop pasó desktop-file-validate. El ejecutable y el índice HTML instalados coinciden con los publicados.
+- Se preparó un VPK de texto en artifacts/samples para probar herramientas; no representa un mod cosmético.
+
+No se instaló ningún mod en la instalación real ni se cambiaron sus configuraciones. Dota estaba abierto durante las pruebas de navegador y la aplicación bloqueó correctamente las acciones que lo modifican.

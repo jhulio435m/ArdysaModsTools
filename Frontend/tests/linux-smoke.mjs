@@ -1,0 +1,72 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+import { chromium } from "@playwright/test";
+import { readFileSync, mkdirSync, writeFileSync, existsSync } from "node:fs";
+import { resolve, join } from "node:path";
+import { execFileSync } from "node:child_process";
+import assert from "node:assert/strict";
+
+const [sessionFile, workspace] = process.argv.slice(2);
+if (!sessionFile || !workspace) throw new Error("Usage: node tests/linux-smoke.mjs PRIVATE_SESSION_FILE TEMP_WORKSPACE");
+mkdirSync(workspace, { recursive: true });
+const app = resolve("../artifacts/linux-x64/ardysa-mods-tools");
+const source = join(workspace, "content");
+mkdirSync(source, { recursive: true });
+writeFileSync(join(source, "readme.txt"), "Linux VPK smoke test\n");
+const pack = join(workspace, "smoke_dir.vpk");
+execFileSync(app, ["vpk-build", "--source", source, "--output", pack]);
+execFileSync(app, ["vpk-verify", "--input", pack]);
+const launchUrl = readFileSync(sessionFile, "utf8");
+const origin = new URL(launchUrl).origin;
+const browser = await chromium.launch({ executablePath: process.env.AMT_CHROMIUM ?? "/usr/bin/chromium", headless: true });
+try {
+   const page = await browser.newPage({ viewport: { width: 1240, height: 900 } });
+   const errors = [];
+   page.on("pageerror", error => errors.push(error.message));
+   const unauth = await browser.newContext();
+   assert.equal((await unauth.request.get(`${origin}/api/status`)).status(), 401);
+   assert.equal((await unauth.request.post(`${origin}/api/preferences`, { data: {} })).status(), 403);
+   await unauth.close();
+   await page.goto(launchUrl);
+   await page.getByRole("button", { name: "Guardar", exact: true }).waitFor();
+   await page.waitForFunction(() => !document.querySelector("#dota-root")?.disabled);
+   assert.ok((await page.locator("#dota-root").inputValue()).includes("dota 2 beta"));
+   assert.equal(new URL(page.url()).hash, "");
+   await page.getByRole("button", { name: "Guardar", exact: true }).click();
+   await page.getByText("Instalación guardada.", { exact: true }).waitFor();
+   const status = await page.evaluate(async () => (await fetch("/api/status")).json());
+   assert.equal(await page.getByRole("button", { name: "Instalar paquete", exact: true }).isDisabled(), true);
+   assert.equal(status.installed, false);
+   await page.getByRole("button", { name: "Archivos VPK", exact: true }).click();
+   await page.locator("#vpk-input").fill(pack);
+   await page.getByRole("button", { name: "Verificar integridad", exact: true }).click();
+   await page.getByText("CRC de todas las entradas verificado.", { exact: true }).waitFor();
+   await page.getByRole("button", { name: "Ver contenido", exact: true }).click();
+   await page.getByText("Directorio leído. Se muestran hasta 200 entradas y el total del paquete.", { exact: true }).waitFor();
+   assert.ok((await page.locator("pre").textContent()).includes("readme.txt"));
+   const extracted = join(workspace, "extracted");
+   await page.locator("#extract-output").fill(extracted);
+   await page.getByRole("button", { name: "Extraer paquete", exact: true }).click();
+   await page.getByText("Archivos extraídos y CRC verificado.", { exact: true }).waitFor();
+   assert.equal(readFileSync(join(extracted, "readme.txt"), "utf8"), "Linux VPK smoke test\n");
+   const generated = join(workspace, "browser_dir.vpk");
+   await page.locator("#build-source").fill(source);
+   await page.locator("#build-output").fill(generated);
+   await page.getByRole("button", { name: "Crear paquete", exact: true }).click();
+   await page.getByText("VPK generado y verificado.", { exact: true }).waitFor();
+   assert.ok(existsSync(generated));
+   const rejected = await page.evaluate(async output => {
+      const response = await fetch("/api/download", { method: "POST", headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({ urls: ["https://localhost/asset"], sha256: "0".repeat(64), output }) });
+      return { status: response.status, body: await response.json() };
+   }, join(workspace, "rejected-download"));
+   assert.equal(rejected.status, 400);
+   assert.ok(rejected.body.error.includes("approved upstream"));
+   await page.getByRole("button", { name: "Mods", exact: true }).click();
+   await page.screenshot({ path: join(workspace, "desktop.png"), fullPage: true });
+   await page.setViewportSize({ width: 390, height: 844 });
+   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
+   await page.screenshot({ path: join(workspace, "mobile.png"), fullPage: true });
+   assert.deepEqual(errors, []);
+   console.log("PASS: browser session, detection, preferences, VPK verify/list/extract/build, auth/origin rejection, unsafe download rejection and desktop/mobile layouts.");
+   console.log(`Game running=${status.gameRunning}; real game files unchanged. Screenshots saved in the test workspace.`);
+} finally { await browser.close(); }

@@ -36,8 +36,9 @@ json.loads((ROOT / "Frontend/package.json").read_text())
 json.loads((ROOT / "Linux/recipes/example.json").read_text())
 for script in (ROOT / "Linux/scripts").glob("*.sh"):
     subprocess.run(["bash", "-n", str(script)], check=True)
-require(not (ROOT / "Linux/Host/wwwroot/index.html").exists(), "Unexpected built frontend artifact in source-only checkout.")
-for binary in (ROOT / "Linux").rglob("*"):
-    require(binary.suffix not in (".dll", ".exe"), f"Unexpected compiled artifact: {binary}")
+tracked = subprocess.check_output(["git", "ls-files", "-z", "Linux"], cwd=ROOT).decode().split("\0")
+for name in filter(None, tracked):
+    require(Path(name).suffix not in (".dll", ".exe"), f"Unexpected tracked compiled artifact: {name}")
+require(not any(name.startswith("Linux/Host/wwwroot/") for name in tracked), "Generated frontend artifacts must not be committed.")
 subprocess.run(["git", "-c", "core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol", "diff", "--check"], cwd=ROOT, check=True)
 print(f"PASS: {checks} structural checks; shell syntax, JSON, XML, references, assets and diff whitespace. No compilation or runtime verification.")

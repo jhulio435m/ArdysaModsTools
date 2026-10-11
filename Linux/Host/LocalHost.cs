@@ -19,8 +19,12 @@ internal static class LocalHost
     public sealed record ListRequest(string Input, int Offset = 0, int Limit = 200);
     public sealed record PerformanceRequest(int? FpsMax, int? MenuFps);
 
-    public static async Task RunAsync(PreferenceStore preferences, CancellationToken ct)
+    public static async Task RunAsync(PreferenceStore preferences, CancellationToken ct,
+        string? sessionFile = null, bool noBrowser = false)
     {
+        if (noBrowser && sessionFile is null) throw new ArgumentException("--no-browser requires --session-file.");
+        if (sessionFile is not null && !Path.IsPathFullyQualified(sessionFile))
+            throw new ArgumentException("Session file must use an absolute path.");
         var webRoot = Path.Combine(AppContext.BaseDirectory, "wwwroot");
         if (!File.Exists(Path.Combine(webRoot, "index.html")))
             throw new IOException("Linux frontend has not been built. See Linux/README.md for build instructions.");
@@ -125,11 +129,27 @@ internal static class LocalHost
         Console.WriteLine($"ArdysaModsTools Linux listening locally at {origin}. Close with Ctrl+C.");
         try
         {
-            var start = new ProcessStartInfo("xdg-open") { UseShellExecute = false };
-            start.ArgumentList.Add(origin + "/#session=" + token);
-            using var process = Process.Start(start) ?? throw new IOException("Could not open the browser.");
+            var launchUrl = origin + "/#session=" + token;
+            if (sessionFile is not null)
+            {
+                LinuxPaths.EnsureNoLinks(sessionFile);
+                var options = new FileStreamOptions { Mode = FileMode.CreateNew, Access = FileAccess.Write };
+                if (OperatingSystem.IsLinux()) options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+                await using var stream = new FileStream(sessionFile, options);
+                await stream.WriteAsync(Encoding.UTF8.GetBytes(launchUrl), ct);
+            }
+            if (!noBrowser)
+            {
+                var start = new ProcessStartInfo("xdg-open") { UseShellExecute = false };
+                start.ArgumentList.Add(launchUrl);
+                using var process = Process.Start(start) ?? throw new IOException("Could not open the browser.");
+            }
             await app.WaitForShutdownAsync(ct);
         }
-        finally { await app.StopAsync(CancellationToken.None); await app.DisposeAsync(); }
+        finally
+        {
+            if (sessionFile is not null) File.Delete(sessionFile);
+            await app.StopAsync(CancellationToken.None); await app.DisposeAsync();
+        }
     }
 }

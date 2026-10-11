@@ -2,25 +2,25 @@
 
 Fork independiente de [Anneardysa/ArdysaModsTools](https://github.com/Anneardysa/ArdysaModsTools), con licencia GPL-3.0-or-later. Se conservan la licencia y los avisos originales. Esta rama añade una entrada Linux y conserva la aplicación Windows.
 
-**Estado: código fuente experimental, sin compilar ni ejecutar.** Las comprobaciones estructurales no demuestran que el código compile ni que Dota cargue los mods. No se han cambiado archivos de la instalación real del juego. No hay ejecutables Linux publicados.
+**Estado: versión experimental compilada, instalada por usuario y verificada localmente para pruebas.** Pasaron 17 pruebas NUnit, el typecheck/build Linux y los flujos principales en Chromium. No se ha instalado un mod cosmético en Dota ni se ha validado su carga dentro del juego. No hay release pública de ejecutables. Consulta [TESTING.md](TESTING.md) para abrirla y probarla.
 
 ## Arquitectura
 
 - `Core/`: biblioteca `net8.0` sin WinForms, WebView2, registro, P/Invoke ni herramientas Windows. Comparte por enlace los helpers KeyValues y el parcheador de héroes originales; no los duplica.
 - `Host/`: ejecutable CLI y host ASP.NET local. Escucha exclusivamente en `127.0.0.1` con un puerto asignado por el sistema; abre la interfaz mediante `xdg-open`.
 - `../Frontend/src/pages/linux/`: interfaz React que reutiliza los tokens y la tipografía del proyecto. Se sirve desde el host local en el navegador de Linux. No requiere Electron, Wine, Proton ni WebView2 para la aplicación.
-- `Tests/`: pruebas NUnit preparadas, todavía no ejecutadas.
+- `Tests/`: 17 pruebas NUnit aprobadas, con fixtures temporales independientes del juego real.
 - `scripts/`: revisión estática, compilación explícita e instalación de artefactos ya compilados.
 
 El frontend original para WebView2 sigue separado. La nueva interfaz Linux no representa todavía todas las funciones de esas pantallas. Consulta [PLAN.md](PLAN.md) para la matriz de paridad y los criterios de aceptación.
 
-## Funciones escritas
+## Funciones disponibles para probar
 
 | Función | Implementación | Validación pendiente |
 |---|---|---|
-| Detección de Steam | Steam nativo, Flatpak, bibliotecas adicionales y `appmanifest_570.acf` | Ejecutar el detector C# |
-| Configuración | Rutas XDG y preferencias de usuario | Ejecución, permisos y persistencia |
-| VPK | Lectura v1/v2, precarga, archivos divididos, CRC; escritura v1 de archivo único | Pruebas NUnit y comparación con herramientas independientes |
+| Detección de Steam | Steam nativo, Flatpak, bibliotecas adicionales y `appmanifest_570.acf` | Detector real probado; ampliar matriz Flatpak/discos |
+| Configuración | Rutas XDG y preferencias de usuario | Persistencia comprobada en navegador; ampliar casos de permisos |
+| VPK | Lectura v1/v2, precarga, archivos divididos, CRC; escritura v1 de archivo único | Roundtrip/CRC aprobados y lectura selectiva del VPK real; ampliar packs grandes |
 | Descargas | HTTPS, hosts upstream permitidos, SHA-256 obligatorio y espejos secuenciales | Descarga real con manifiesto confiable |
 | Generación | Recetas, ZIP con rutas restringidas y parcheador original sobre `items_game` instalado | Catálogos, selección y resultados dentro del juego |
 | Instalación manual | Normaliza el paquete, guarda el original de `gameinfo.gi` y añade un montaje Linux propio | Validar que el cliente nativo acepte el montaje |
@@ -28,7 +28,7 @@ El frontend original para WebView2 sigue separado. La nueva interfaz Linux no re
 | Recuperación | Journal, copias, comprobación de conflictos y rollback | Interrupciones de proceso y fallos reales del sistema de archivos |
 | Cambios de Dota | Aviso de build/configuración cambiados y reaplicación manual | Verificar después de una actualización real |
 | FPS | Bloque propio de `fps_max` y `fps_max_ui` en `autoexec.cfg` | Verificar lectura por el juego |
-| Interfaz | Detección, preferencias, mods, VPK, recetas, descargas y FPS | Typecheck, build y revisión en navegador |
+| Interfaz | Detección, preferencias, mods, VPK, recetas, descargas y FPS | Typecheck/build/Chromium aprobados; probar mods reales |
 
 ## Límites explícitos
 
@@ -54,17 +54,17 @@ La revisión comprueba XML, JSON, referencias de proyectos, imports relativos, f
 
 El workflow también analiza sintaxis con Tree-sitter instalado exclusivamente desde wheels precompilados. Para reproducir ese check en un entorno Python dedicado, instala `scripts/syntax-requirements.txt` usando `pip --only-binary=:all:` y ejecuta `python scripts/syntax-check.py` desde `Linux/`. No equivale a typecheck o compilación. La evidencia y las verificaciones pendientes están en [VALIDATION.md](VALIDATION.md).
 
-## Compilar cuando se autorice
+## Repetir la compilación
 
-Esta sección es una instrucción para una fase futura; no se ejecutó al preparar el fork.
+La primera publicación Linux x86_64 ya se realizó localmente.
 
-Se necesita Linux, SDK .NET 8 compatible, Node.js/npm compatibles con el frontend y `xdg-open`. `dotnet` no estaba disponible en el PATH de la PC revisada. El SDK no se instaló durante este trabajo. La publicación incluye su runtime .NET.
+Se necesita Linux, SDK .NET 8 compatible, Node.js/npm compatibles con el frontend y `xdg-open`. Se instaló el SDK oficial 8.0.425 por usuario en `~/.local/share/ardysa-dotnet`. El script lo detecta automáticamente si no existe `dotnet` en PATH; también acepta `AMT_DOTNET`. La publicación incluye su runtime .NET, por lo que abrir la aplicación instalada no requiere el SDK.
 
 ```bash
 bash Linux/scripts/build.sh --compile linux-x64
 ```
 
-El script instala dependencias frontend, ejecuta el typecheck, compila React, ejecuta NUnit y publica el host. Sin `--compile`, termina sin compilar. `linux-arm64` también está preparado como destino de publicación; no ha sido validado en hardware ARM. Una publicación cruzada no valida su ejecución.
+El script instala dependencias frontend, ejecuta el typecheck específico de Linux, compila React, ejecuta NUnit y publica el host. El typecheck global del espejo original sigue fallando en pantallas Windows con módulos/tipos faltantes; esas pantallas no forman parte del bundle Linux. Sin `--compile`, termina sin compilar. `linux-arm64` también está preparado como destino de publicación; no ha sido validado en hardware ARM. Una publicación cruzada no valida su ejecución.
 
 El frontend Linux se compila por separado; el script original `Frontend/build.mjs` lo excluye de las páginas Windows.
 

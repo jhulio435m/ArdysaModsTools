@@ -1,12 +1,12 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { viteSingleFile } from "vite-plugin-singlefile";
+import { inlinePage } from "./single-file";
 
 export default defineConfig(() => {
    const page = process.env.AMT_PAGE;
 
    return {
-      plugins: [react(), viteSingleFile({ removeViteModuleLoader: true })],
+      plugins: [react(), inlinePage()],
       build: {
          outDir: ".vite-out",
          emptyOutDir: false,

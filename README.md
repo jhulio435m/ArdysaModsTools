@@ -1,6 +1,6 @@
 # Fork Linux de ArdysaModsTools
 
-Esta rama `linux-port` añade proyectos C#/React independientes para Linux. **Estado: fuentes experimentales sin compilar; la carga de mods en Dota nativo todavía no se ha validado.** No es una release Linux lista para usar ni un port con paridad completa.
+Esta rama `linux-port` añade proyectos C#/React independientes para Linux. **Estado: versión experimental compilada y verificada localmente para pruebas.** La carga de un mod cosmético dentro de Dota todavía no se ha validado; no hay release pública ni paridad completa. Consulta también [cómo probarla](Linux/TESTING.md).
 
 Consulta [la documentación Linux](Linux/README.md) y [el plan y las funciones pendientes](Linux/PLAN.md). Las instrucciones Windows originales se conservan debajo. Las automatizaciones de publicación de CDN del autor quedan restringidas al repositorio original.
 

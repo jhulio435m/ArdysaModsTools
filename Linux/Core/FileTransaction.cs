@@ -13,9 +13,11 @@ public sealed class FileTransaction : IDisposable
     private readonly string root;
     private readonly string directory;
     private readonly FileStream gate;
-    public FileTransaction(string root)
+    private readonly Func<bool> gameRunning;
+    public FileTransaction(string root, Func<bool>? gameRunning = null)
     {
         this.root = Path.GetFullPath(root);
+        this.gameRunning = gameRunning ?? SteamDetector.GameRunning;
         LinuxPaths.EnsureNoLinks(this.root);
         directory = LinuxPaths.SafeChild(this.root, ".ardysa-linux-transaction");
         Directory.CreateDirectory(directory);
@@ -50,7 +52,7 @@ public sealed class FileTransaction : IDisposable
             foreach (var entry in entries)
             {
                 ct.ThrowIfCancellationRequested();
-                if (SteamDetector.GameRunning()) throw new IOException("Close Dota 2 before changing game files.");
+                if (gameRunning()) throw new IOException("Close Dota 2 before changing game files.");
                 if (SteamDetector.SteamUpdateInProgress(root)) throw new IOException("Wait for Steam to finish updating Dota 2.");
                 var target = LinuxPaths.SafeChild(root, entry.Relative);
                 if ((File.Exists(target) ? Hash(target) : null) != entry.BeforeHash)
@@ -68,14 +70,14 @@ public sealed class FileTransaction : IDisposable
             throw;
         }
     }
-    public static void Recover(string root)
+    public static void Recover(string root, Func<bool>? gameRunning = null)
     {
         LinuxPaths.EnsureNoLinks(root);
         var directory = LinuxPaths.SafeChild(root, ".ardysa-linux-transaction");
         if (!Directory.Exists(directory)) return;
         using var gate = new FileStream(LinuxPaths.SafeChild(directory, "lock"), FileMode.OpenOrCreate,
             FileAccess.ReadWrite, FileShare.None);
-        if (SteamDetector.GameRunning()) throw new IOException("Close Dota 2 before recovery.");
+        if ((gameRunning ?? SteamDetector.GameRunning)()) throw new IOException("Close Dota 2 before recovery.");
         RecoverUnlocked(root, directory);
     }
     private static void RecoverUnlocked(string root, string directory)

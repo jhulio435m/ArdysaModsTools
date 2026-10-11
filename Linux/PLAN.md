@@ -6,11 +6,13 @@ Ofrecer una aplicación Linux para administrar los mismos mods cosméticos que e
 
 El shell Linux usa React en el navegador local y C#/.NET como backend. Esto permite avanzar sin introducir una reescritura Rust/JavaScript del núcleo. Los servicios Windows acoplados a UI se portan por función: cambiar `net8.0-windows` directamente no elimina WinForms, WebView2, registro, ACL, herramientas `.exe`, updater ni dependencias nativas.
 
-## Entrega actual: fuente sin compilación
+## Entrega actual: versión experimental lista para pruebas locales
 
 Hecho en código: proyectos separados; exclusión del glob Windows; detección nativa/Flatpak y bibliotecas adicionales; rutas XDG; CLI; host local autenticado; página React con tokens y fuente originales; VPK administrado; descargas verificadas; generación por recetas/ZIP; parcheador de héroes original enlazado; instalación/desactivación experimentales; journal y recuperación; detección de cambios y reaplicación manual; límites FPS; fuentes de pruebas; scripts de build/instalación; CI que no compila.
 
-**No ejecutado:** restore, typecheck, build, publicación de binarios, NUnit, interfaz en navegador ni instalación de mods dentro del juego. No debe marcarse como aplicación terminada ni port de paridad completa.
+**Verificado localmente:** restore, typecheck/build Linux, publicación self-contained, 17 pruebas NUnit, instalación por usuario y flujos Chromium. La lectura selectiva de items_game mediante C# también pasó su CRC.
+
+**Pendiente:** instalación de un mod cosmético dentro del juego y paridad completa. No debe marcarse como aplicación terminada.
 
 ## Fase 1: validar la base
 
@@ -67,4 +69,4 @@ Publicar una beta Linux identificada como experimental después de superar las p
 
 ## Orden de ejecución y alcance
 
-El orden crítico es base compilada → VPK independiente → montaje/restauración dentro del juego → catálogos/selección → automatismos → empaquetado/release. El código fuente adelantado de una fase no sustituye sus criterios de validación. La instrucción actual excluye compilación, por lo que las fases de ejecución permanecen pendientes.
+El orden crítico es base compilada → VPK independiente → montaje/restauración dentro del juego → catálogos/selección → automatismos → empaquetado/release. El código fuente adelantado de una fase no sustituye sus criterios de validación. La instrucción posterior autorizó preparar la prueba completa: se compiló y se validó la base local. Las fases que requieren resultados visuales de mods y paridad siguen pendientes.

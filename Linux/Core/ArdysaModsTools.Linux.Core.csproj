@@ -12,5 +12,6 @@
     <Compile Include="../../Core/Helpers/ItemsGameMerger.cs" Link="Shared/ItemsGameMerger.cs" />
     <Compile Include="../../Core/Helpers/ItemsGameBlockIndex.cs" Link="Shared/ItemsGameBlockIndex.cs" />
     <Compile Include="../../Core/Services/Hero/HeroSetPatcherService.cs" Link="Shared/HeroSetPatcherService.cs" />
+    <Compile Include="../../Core/Services/Hero/HeroDefaultItemRegistry.cs" Link="Shared/HeroDefaultItemRegistry.cs" />
   </ItemGroup>
 </Project>

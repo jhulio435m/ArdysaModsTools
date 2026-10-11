@@ -38,6 +38,17 @@ public sealed class PortTests
         var bytes = File.ReadAllBytes(At("pack.vpk")); bytes[^1] ^= 1; File.WriteAllBytes(At("pack.vpk"), bytes);
         Assert.ThrowsAsync<InvalidDataException>(() => new VpkArchive(At("pack.vpk")).VerifyAsync());
     }
+    [Test]
+    public async Task SelectedEntryExtractionChecksCrcAndPreservesExistingOutput()
+    {
+        Put(At("source/a.txt"), "a"); Put(At("source/nested/b.txt"), "b");
+        await VpkArchive.BuildAsync(At("source"), At("pack.vpk"));
+        var archive = new VpkArchive(At("pack.vpk"));
+        await archive.ExtractEntryAsync("nested/b.txt", At("selected.txt"));
+        Assert.That(File.ReadAllText(At("selected.txt")), Is.EqualTo("b"));
+        Assert.ThrowsAsync<IOException>(() => archive.ExtractEntryAsync("a.txt", At("selected.txt")));
+        Assert.That(File.ReadAllText(At("selected.txt")), Is.EqualTo("b"));
+    }
     [TestCase("../escape")]
     [TestCase("/absolute")]
     [TestCase("nested\\escape")]
@@ -50,7 +61,7 @@ public sealed class PortTests
         Assert.Throws<IOException>(() => LinuxPaths.SafeChild(workspace, "link/file"));
     }
     [Test]
-    public async Task WriterRejectsOutputInsideSourceAndExistingOutputs()
+    public void WriterRejectsOutputInsideSourceAndExistingOutputs()
     {
         Put(At("source/a.txt"), "a");
         Assert.ThrowsAsync<IOException>(() => VpkArchive.BuildAsync(At("source"), At("source/output.vpk")));
@@ -121,11 +132,11 @@ public sealed class PortTests
         string Digest(string text) => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(text)));
         var entry = new FileTransaction.Entry("file", true, Digest("before"), Digest("after"), 0);
         Put(At(".ardysa-linux-transaction/journal.json"), JsonSerializer.Serialize(new FileTransaction.Journal("pending", [entry])));
-        FileTransaction.Recover(workspace);
+        FileTransaction.Recover(workspace, () => false);
         Assert.That(File.ReadAllText(At("file")), Is.EqualTo("before"));
         Put(At("file"), "Steam update"); Put(At(".ardysa-linux-transaction/0.backup"), "before");
         Put(At(".ardysa-linux-transaction/journal.json"), JsonSerializer.Serialize(new FileTransaction.Journal("pending", [entry])));
-        Assert.Throws<IOException>(() => FileTransaction.Recover(workspace));
+        Assert.Throws<IOException>(() => FileTransaction.Recover(workspace, () => false));
         Assert.That(File.ReadAllText(At("file")), Is.EqualTo("Steam update"));
         Assert.That(File.Exists(At(".ardysa-linux-transaction/0.backup")), Is.True);
     }
@@ -135,7 +146,7 @@ public sealed class PortTests
         var root = At("game"); FakeGame(root);
         var info = Path.Combine(root, "game/dota/gameinfo.gi"); var original = File.ReadAllBytes(info);
         Put(At("mod/models/readme.txt"), "test asset"); await VpkArchive.BuildAsync(At("mod"), At("mod_dir.vpk"));
-        var manager = new ModManager();
+        var manager = new ModManager(() => false);
         Assert.ThrowsAsync<InvalidOperationException>(() => manager.InstallAsync(root, At("mod_dir.vpk"), false));
         await manager.InstallAsync(root, At("mod_dir.vpk"), true);
         Assert.That(manager.Status(root).Installed, Is.True);
@@ -148,7 +159,7 @@ public sealed class PortTests
     {
         var root = At("game"); FakeGame(root);
         Put(At("mod/a.txt"), "asset"); await VpkArchive.BuildAsync(At("mod"), At("mod_dir.vpk"));
-        var manager = new ModManager(); await manager.InstallAsync(root, At("mod_dir.vpk"), true);
+        var manager = new ModManager(() => false); await manager.InstallAsync(root, At("mod_dir.vpk"), true);
         var info = Path.Combine(root, "game/dota/gameinfo.gi");
         var update = "GameInfo {\nFileSystem {\nSearchPaths {\nGame dota\nGame core\n}\n}\n}\n// new Steam version\n";
         File.WriteAllText(info, update);
@@ -160,7 +171,7 @@ public sealed class PortTests
     {
         var root = At("game"); FakeGame(root); var cfg = Path.Combine(root, "game/dota/cfg/autoexec.cfg");
         Put(cfg, "// user config\nfps_max \"144\"\n");
-        var service = new PerformanceConfig(); await service.SaveAsync(root, 90, 30);
+        var service = new PerformanceConfig(() => false); await service.SaveAsync(root, 90, 30);
         Assert.That(File.ReadAllText(cfg), Does.Contain("fps_max \"90\""));
         await service.SaveAsync(root, null, null);
         Assert.That(File.ReadAllText(cfg), Is.EqualTo("// user config\nfps_max \"144\"\n"));

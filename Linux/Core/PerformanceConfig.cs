@@ -5,8 +5,9 @@ using System.Text.RegularExpressions;
 
 namespace ArdysaModsTools.Linux;
 
-public sealed class PerformanceConfig
+public sealed class PerformanceConfig(Func<bool>? isGameRunning = null)
 {
+    private readonly Func<bool> gameRunning = isGameRunning ?? SteamDetector.GameRunning;
     private const string Relative = "game/dota/cfg/autoexec.cfg";
     private const string Begin = "// BEGIN ArdysaModsTools Linux FPS settings";
     private const string End = "// END ArdysaModsTools Linux FPS settings";
@@ -14,10 +15,10 @@ public sealed class PerformanceConfig
     public async Task SaveAsync(string root, int? fpsMax, int? menuFps, CancellationToken ct = default)
     {
         if (!SteamDetector.Validate(root)) throw new IOException("Select a native Dota installation.");
-        if (SteamDetector.GameRunning()) throw new IOException("Close Dota 2 before editing autoexec.");
+        if (gameRunning()) throw new IOException("Close Dota 2 before editing autoexec.");
         if (fpsMax is < 0 or > 1000 || menuFps is < 0 or > 1000 || (fpsMax is null) != (menuFps is null))
             throw new ArgumentException("Both FPS limits must be between 0 and 1000, or both null to remove the block.");
-        using var transaction = new FileTransaction(root);
+        using var transaction = new FileTransaction(root, gameRunning);
         var file = LinuxPaths.SafeChild(root, Relative);
         var existed = File.Exists(file);
         var original = existed ? await File.ReadAllTextAsync(file, ct) : "";

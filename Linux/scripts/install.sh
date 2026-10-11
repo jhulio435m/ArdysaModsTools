@@ -30,7 +30,7 @@ Comment=Experimental native Dota 2 mod manager
 Exec="$desktop_exec" serve
 Icon=applications-games
 Terminal=true
-Categories=Game;Utility;
+Categories=Game;
 StartupNotify=false
 EOF
 printf '%s\n' 'User installation complete. No root permissions, game modifications, or compilation were performed.'

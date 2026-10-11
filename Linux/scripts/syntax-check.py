@@ -11,7 +11,7 @@ parsers = {
     ".ts": Parser(Language(tree_sitter_typescript.language_typescript())),
     ".tsx": Parser(Language(tree_sitter_typescript.language_tsx())),
 }
-files = list((root / "Linux").rglob("*.cs"))
+files = [path for path in (root / "Linux").rglob("*.cs") if not {"bin", "obj"}.intersection(path.parts)]
 files += list((root / "Frontend/src/pages/linux").glob("*.ts"))
 files += list((root / "Frontend/src/pages/linux").glob("*.tsx"))
 errors = []

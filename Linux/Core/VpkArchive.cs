@@ -90,6 +90,23 @@ public sealed class VpkArchive
     {
         foreach (var entry in Entries) await CopyEntryAsync(entry, Stream.Null, ct);
     }
+    public async Task ExtractEntryAsync(string relative, string destination, CancellationToken ct = default)
+    {
+        var entry = Entries.SingleOrDefault(e => e.Path == relative)
+            ?? throw new FileNotFoundException("Entry not found in VPK.", relative);
+        destination = Path.GetFullPath(destination);
+        LinuxPaths.EnsureNoLinks(destination);
+        if (File.Exists(destination)) throw new IOException("Output already exists.");
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+        var temporary = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            await using (var output = new FileStream(temporary, FileMode.CreateNew))
+            { await CopyEntryAsync(entry, output, ct); output.Flush(true); }
+            File.Move(temporary, destination);
+        }
+        finally { if (File.Exists(temporary)) File.Delete(temporary); }
+    }
     public async Task ExtractAsync(string destination, CancellationToken ct = default)
     {
         LinuxPaths.EnsureNoLinks(destination);

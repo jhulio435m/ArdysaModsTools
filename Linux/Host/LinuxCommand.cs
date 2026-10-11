@@ -14,18 +14,20 @@ internal static class LinuxCommand
         {
             var key = args[i];
             if (!key.StartsWith("--", StringComparison.Ordinal)) throw new ArgumentException("Use named --options.\n" + Help);
-            var value = key == "--experimental" ? "true"
+            var value = key is "--experimental" or "--no-browser" ? "true"
                 : ++i < args.Length ? args[i] : throw new ArgumentException($"Missing value for {key}.");
             if (!options.TryAdd(key, value)) throw new ArgumentException($"Duplicate option {key}.");
         }
         string[] allowed = command switch
         {
-            "serve" or "detect" => Array.Empty<string>(),
+            "serve" => ["--session-file", "--no-browser"],
+            "detect" => Array.Empty<string>(),
             "status" or "disable" or "recover" => ["--root"],
             "install" => ["--root", "--input", "--experimental"],
             "reapply" => ["--root", "--experimental"],
             "vpk-list" or "vpk-verify" => ["--input"],
             "vpk-extract" => ["--input", "--output"],
+            "vpk-extract-entry" => ["--input", "--entry", "--output"],
             "vpk-build" => ["--source", "--output"],
             "generate" => ["--root", "--recipe", "--output"],
             "download" => ["--url", "--sha256", "--output"],
@@ -44,13 +46,15 @@ internal static class LinuxCommand
         var manager = new ModManager();
         switch (command)
         {
-            case "serve": await LocalHost.RunAsync(preferences, ct); break;
+            case "serve": await LocalHost.RunAsync(preferences, ct,
+                options.GetValueOrDefault("--session-file"), options.ContainsKey("--no-browser")); break;
             case "detect": Print(new SteamDetector().Detect()); break;
             case "status": Print(manager.Status(Root())); break;
             case "vpk-list":
                 Print(new VpkArchive(Required("--input")).Entries.Select(e => new { e.Path, e.Length, PreloadBytes = e.Preload.Length, e.Archive })); break;
             case "vpk-verify": await new VpkArchive(Required("--input")).VerifyAsync(ct); break;
             case "vpk-extract": await new VpkArchive(Required("--input")).ExtractAsync(Required("--output"), ct); break;
+            case "vpk-extract-entry": await new VpkArchive(Required("--input")).ExtractEntryAsync(Required("--entry"), Required("--output"), ct); break;
             case "vpk-build": await VpkArchive.BuildAsync(Required("--source"), Required("--output"), ct); break;
             case "generate": await new GenerationService().GenerateAsync(Root(), Required("--recipe"), Required("--output"), ct); break;
             case "download":
@@ -69,11 +73,13 @@ internal static class LinuxCommand
     private const string Help = """
         ArdysaModsTools Linux — experimental source port
         serve                                   Open the local React interface (default)
+          [--session-file PATH --no-browser]    Private bootstrap link for local UI testing
         detect                                  List native Linux Steam installations
         status [--root PATH]                    Inspect installed mods and patch drift
         vpk-list --input FILE                   List VPK v1/v2 directory entries
         vpk-verify --input FILE                 Verify every entry's CRC (all chunks required)
         vpk-extract --input FILE --output DIR    Extract into an empty directory
+        vpk-extract-entry --input FILE --entry RELATIVE --output FILE
         vpk-build --source DIR --output FILE    Build a standalone VPK v1 (less than 4 GiB)
         download --url HTTPS --sha256 HASH --output FILE
         generate --recipe JSON --output FILE [--root PATH]
