@@ -54,6 +54,6 @@ Este primer selector maneja ZIP completos con index.txt. No incluye paquetes div
 
 ## Selección instalada para abrir Dota
 
-El paquete combinado preparado el 11 de octubre está en `artifacts/heroes-final_dir.vpk`; el informe completo está en `artifacts/heroes-final-report.json`. Incluye 125 de los 126 héroes del catálogo: 123 con paquetes del CDN y Bristleback/Enigma con modelos cosméticos del juego. Kez conserva su apariencia original porque no tiene alternativas en el catálogo ni modelos de cosméticos alternativos en esta instalación.
+El paquete combinado preparado el 11 de octubre está en `artifacts/heroes-final_dir.vpk`; el informe completo está en `artifacts/heroes-final-report.json`. Incluye 125 de los 126 héroes del catálogo: 123 con paquetes del CDN y Bristleback/Enigma con modelos cosméticos del juego. La instalación nativa incluye además a Largo, ausente del catálogo y sin modelos cosméticos alternativos instalados: la cobertura real es 125/127. Kez conserva su apariencia original porque no tiene alternativas en el catálogo ni modelos de cosméticos alternativos en esta instalación.
 
 Esta selección reemplaza objetos predeterminados; piezas equipadas de otros sets pueden seguir mostrando sus propios modelos. La aplicación puede desactivar todo y restaurar el gameinfo original con su respaldo. No hace falta ejecutar la aplicación antes de cada arranque de Dota. Una actualización de Steam puede requerir reaplicar el montaje o regenerar la tabla de objetos.
