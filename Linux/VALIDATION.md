@@ -56,3 +56,13 @@ La comprobación posterior de scripts/npc/npc_heroes.txt detectó 127 héroes re
 ## Earthshaker Planetfall base — 11 octubre 2026
 
 Se descargó base_arcana_1.zip y se verificó su SHA-256 contra el manifiesto original. El overlay incluye models/heroes/earthshaker/earthshaker.vmdl_c. El VPK pasa CRC; las 1.746 entradas anteriores siguen presentes, con solo tres entradas anteriores cambiadas y ninguna fuera del overlay permitido. Se comparó también la tabla de objetos antes/después para conservar los otros héroes. Las 18 pruebas pasan. Se instaló con Dota cerrado y el paquete instalado coincide byte por byte con el generado. La apariencia Planetfall dentro del juego requiere comprobación visual del usuario.
+
+## Planetfall completo y Drow estilo 2 — 11 octubre 2026
+
+El usuario confirmó el cuerpo de Planetfall y reportó piezas y cabeza ausentes. La corrección conserva el cuerpo y restaura tótem, brazales y cintura de arcana.zip. La cabeza predeterminada 8655 recibe el modelo y configuración del objeto Planetfall - Head 34382 de la tabla nativa actual, que usa earthshaker_arcana_head_refit.vmdl.
+
+Drow combina dread.zip con base_arcana_2.zip, ambos verificados contra el SHA-256 del manifiesto. Los recursos variants/base_arcana_2 del bundle se promueven a sus rutas de carga; no basta con copiar la carpeta variants. El estilo usa piel 1, iconos alt2 y efectos arcana_v2 (Master of Madness). Se conserva la interfaz global.
+
+Paquete local: artifacts/heroes-earthshaker-drow_dir.vpk. Pasa CRC. Solo cambian los objetos 75, 76, 77, 78, 79, 80, 267, 905 y 8655 frente al paquete anterior; 26.652 bloques restantes se conservan. Los ocho modelos asignados a las piezas solicitadas existen en el paquete o el juego. El cuerpo y accesorios restaurados de Earthshaker coinciden con sus ZIP originales. Apariencia final pendiente de prueba dentro del juego; esta combinación todavía se prepara fuera del selector gráfico.
+
+hero-overlay permite --items ID,ID para limitar bloques de la tabla; los recursos del ZIP completo siguen copiándose. Esta opción no es un filtro de recursos por slot.

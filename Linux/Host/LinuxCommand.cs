@@ -30,7 +30,7 @@ internal static class LinuxCommand
             "vpk-extract-entry" => ["--input", "--entry", "--output"],
             "vpk-build" => ["--source", "--output"],
             "generate" => ["--root", "--recipe", "--output"],
-            "hero-overlay" => ["--base", "--hero", "--asset", "--output"],
+            "hero-overlay" => ["--base", "--hero", "--asset", "--output", "--items"],
             "generate-all" => ["--root", "--output", "--report", "--base", "--base-report", "--only", "--local-fallback"],
             "download" => ["--url", "--sha256", "--output"],
             _ => throw new ArgumentException("Unknown command.\n" + Help)
@@ -59,7 +59,8 @@ internal static class LinuxCommand
             case "vpk-extract-entry": await new VpkArchive(Required("--input")).ExtractEntryAsync(Required("--entry"), Required("--output"), ct); break;
             case "vpk-build": await VpkArchive.BuildAsync(Required("--source"), Required("--output"), ct); break;
             case "generate": await new GenerationService().GenerateAsync(Root(), Required("--recipe"), Required("--output"), ct); break;
-            case "hero-overlay": await new HeroOverlay().GenerateAsync(Required("--base"), Required("--hero"), Required("--asset"), Required("--output"), ct); break;
+            case "hero-overlay": await new HeroOverlay().GenerateAsync(Required("--base"), Required("--hero"), Required("--asset"), Required("--output"), ct,
+                options.TryGetValue("--items", out var itemList) ? itemList.Split(',').Select(v => int.Parse(v, System.Globalization.CultureInfo.InvariantCulture)).ToArray() : null); break;
             case "generate-all": await new AllHeroesGenerator().GenerateAsync(Root(), Required("--output"), Required("--report"), Console.WriteLine, ct,
                 options.GetValueOrDefault("--base"), options.GetValueOrDefault("--base-report"), options.GetValueOrDefault("--only"), options.ContainsKey("--local-fallback")); break;
             case "download":
@@ -88,7 +89,7 @@ internal static class LinuxCommand
         vpk-build --source DIR --output FILE    Build a standalone VPK v1 (less than 4 GiB)
         download --url HTTPS --sha256 HASH --output FILE
         generate --recipe JSON --output FILE [--root PATH]
-        hero-overlay --base VPK --hero ID --asset CATALOG_PATH --output VPK
+        hero-overlay --base VPK --hero ID --asset CATALOG_PATH --output VPK [--items ID,ID]
         generate-all --output FILE --report JSON [--root PATH]
         install --input VPK --experimental [--root PATH]
         disable [--root PATH]                   Restore managed gameinfo and remove Linux mod VPK

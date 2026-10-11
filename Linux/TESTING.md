@@ -61,3 +61,5 @@ Esta selección reemplaza objetos predeterminados; piezas equipadas de otros set
 ## Earthshaker: Planetfall en el héroe base
 
 La selección personalizada usa `Assets/models/Earthshaker/base_arcana_1.zip` (Planetfall, estilo base). El paquete preparado es `artifacts/heroes-planetfall-base_dir.vpk`; conserva la selección combinada y añade el modelo base de Earthshaker. El comando `hero-overlay --base VPK --hero npc_dota_hero_earthshaker --asset Assets/models/Earthshaker/base_arcana_1.zip --output VPK_NUEVO` verifica el hash publicado y aplica únicamente los objetos del héroe elegido; conserva la interfaz compartida del paquete y excluye el taunt compartido. La instalación requiere Dota cerrado.
+
+La selección local más reciente es `artifacts/heroes-earthshaker-drow_dir.vpk`: Earthshaker con cuerpo, accesorios y cabeza Planetfall, y Drow Ranger con Dread Retribution / Master of Madness. Con los objetos predeterminados equipados, revisar cabeza y animaciones de Earthshaker y cuerpo, piezas y efectos del estilo 2 de Drow. La apariencia final no ha sido validada visualmente por el agente.
