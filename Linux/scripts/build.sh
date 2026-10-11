@@ -17,8 +17,10 @@ command -v npm >/dev/null
 cd "$project_root/Frontend"
 npm ci
 npm exec -- tsc --project tsconfig.linux.json --noEmit
+npm run test:linux
 npm exec -- vite build --config vite.linux.config.ts
 cp ../Linux/Host/wwwroot/src/pages/linux/index.html ../Linux/Host/wwwroot/index.html
+cp ../Linux/Host/wwwroot/src/pages/linux/gallery.html ../Linux/Host/wwwroot/gallery.html
 cd "$project_root"
 "$dotnet_bin" test Linux/Tests/ArdysaModsTools.Linux.Tests.csproj --configuration Release
 "$dotnet_bin" publish Linux/Host/ArdysaModsTools.Linux.csproj --configuration Release --runtime "$runtime" --self-contained true --output "artifacts/$runtime"

@@ -54,7 +54,7 @@ export function Header({
    onLoad: () => void;
    onClearAll: () => void;
    onGenerate: () => void;
-   detection: DetectionState;
+   detection?: DetectionState;
    searchInputRef: RefObject<HTMLInputElement>;
    onDebug?: () => void;
 }) {

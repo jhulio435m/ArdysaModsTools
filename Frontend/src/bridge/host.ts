@@ -7,8 +7,12 @@ declare global {
    }
 }
 
+let transport: ((message: Record<string, unknown>) => void) | undefined;
+export function setHostTransport(value: typeof transport): void { transport = value; }
+
 export function send(type: string, payload?: Record<string, unknown>): void {
-   window.chrome?.webview?.postMessage({ type, ...payload });
+   if (transport) transport({ type, ...payload });
+   else window.chrome?.webview?.postMessage({ type, ...payload });
 }
 
 export function expose(handlers: Record<string, (...args: never[]) => unknown>): void {

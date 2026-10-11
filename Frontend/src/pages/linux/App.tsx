@@ -80,7 +80,7 @@ export default function App() {
       <header className="app-header"><div><h1>ArdysaModsTools</h1><p>Linux · versión experimental</p></div>
          <span className="platform">Dota 2 nativo</span></header>
       <div className="workspace">
-         <nav aria-label="Herramientas">{tabs.map(item => <button key={item.id}
+         <nav aria-label="Herramientas"><a href="/gallery.html">Galería de héroes</a>{tabs.map(item => <button key={item.id}
             disabled={busy} aria-current={tab === item.id ? "page" : undefined}
             onClick={() => { setTab(item.id); setMessage(""); setResult(""); setError(""); }}>{item.label}</button>)}
             <a href="https://github.com/jhulio435m/ArdysaModsTools/tree/linux-port/Linux" target="_blank" rel="noreferrer">Documentación</a>

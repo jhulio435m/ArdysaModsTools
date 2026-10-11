@@ -601,3 +601,27 @@
 .csInfo { flex: 1; min-width: 0; }
 .csName { font-size: 11px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .csSet { font-size: 10px; color: var(--body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.linuxToolbar { display: flex; flex-wrap: wrap; gap: 12px; padding: 10px 20px; color: var(--muted); border-bottom: 1px solid var(--hairline); }
+.linuxToolbar a { color: var(--ink); text-decoration: underline; }
+
+.setTileName { display: block; color: var(--ink); font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+.cartChipLabel { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px; background: rgba(0,0,0,.88); color: white; font-size: 11px; line-height: 1.5; pointer-events: none; }
+@media (max-width: 700px) {
+  .ghTop { flex-wrap: wrap; min-width: 0; }
+  .search { flex: 1 1 100%; max-width: none; }
+  .ghActions { flex-wrap: wrap; margin-left: 0; gap: 8px; }
+  .galleryHeader { padding: 10px; }
+  .ghFilters { max-width: 100%; }
+  .titleBar { min-width: 0; }
+  .tbMarquee { display: none; }
+  .modalBackdrop { padding: 8px; }
+  .smWrap { min-width: 0; gap: 4px; }
+  .navArrow { display: none; }
+  .smPanel { min-width: 0; max-height: 94vh; }
+  .smBody { flex-direction: column; max-height: 72vh; overflow-y: auto; }
+  .smCart { flex: 0 0 auto; border-left: 0; border-top: 1px solid var(--hairline); }
+  .smCartList { flex-direction: row; overflow-x: auto; max-height: 135px; }
+  .cartChip { flex-basis: 100px; }
+  .setCategoryGrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}

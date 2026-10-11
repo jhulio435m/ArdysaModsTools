@@ -27,7 +27,7 @@ export function StylePreviewModal() {
          className={css.stylePreviewBackdrop}
          onClick={closeStylePreview}
       >
-         <div className={css.stylePreviewPanel} onClick={(e) => e.stopPropagation()}>
+         <div role="dialog" aria-modal="true" aria-label="Elegir estilo" className={css.stylePreviewPanel} onClick={(e) => e.stopPropagation()}>
             <div className={css.stylePreviewHeader}>
                <div className={css.stylePreviewHeaderThumb}>
                   <img id="stylePreviewThumb" src={headThumb} alt="" />
@@ -54,6 +54,11 @@ export function StylePreviewModal() {
                   return (
                      <div
                         key={e.idx}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={label}
+                        aria-pressed={isActive}
+                        onKeyDown={ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); ev.stopPropagation(); selectStyleFromPreview(hero, e.idx); } }}
                         className={`${css.stylePreviewTile} ${isActive ? css.active : ""}`}
                         onClick={() => selectStyleFromPreview(hero, e.idx)}
                      >

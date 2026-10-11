@@ -1,6 +1,11 @@
 export type SetEntry = {
    name: string;
-   category?: "legacyset" | "customset" | "persona" | "item" | "basehero" | "prismatic";
+   displayName?: string;
+   locks?: string[];
+   conflicts?: number[];
+   carriedBy?: number[];
+   notices?: SetNotice[];
+   category?: "legacyset" | "customset" | "persona" | "item" | "basehero" | "prismatic" | "abilityeffect";
    isCustom?: boolean;
    thumbnailUrl?: string | null;
    tag?: string | null;
@@ -14,6 +19,7 @@ export type Hero = {
    name: string;
    displayName?: string;
    attribute?: string;
+   abilityNames?: Record<string, string>;
    thumbnail: string;
    sets: SetEntry[];
 };
@@ -23,6 +29,7 @@ export type HeroSelectionState = {
    items: number[];
    base: number | null;
    prismatic: number | null;
+   effects?: number[];
 };
 
 export type Selections = Record<string, HeroSelectionState>;
@@ -37,7 +44,7 @@ export type LatestUpdate = {
 
 export type FilterCategory = "all" | "str" | "agi" | "int" | "universal" | "favorites";
 
-export type TileType = "set" | "persona" | "item" | "base" | "prismatic";
+export type TileType = "set" | "persona" | "item" | "base" | "prismatic" | "effect";
 
 export type AlertType = "success" | "warning" | "info";
 
@@ -51,3 +58,6 @@ export type CooldownState = {
    dailyMax: number;
    isDailyLimit: boolean;
 };
+
+export type SetNotice = { type: string; anim?: string; text?: string };
+export type DetectionState = { message: string; ready: boolean };

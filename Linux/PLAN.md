@@ -2,7 +2,7 @@
 
 ## Objetivo y decisión técnica
 
-Ofrecer una aplicación Linux para administrar los mismos mods cosméticos que el proyecto Windows, conservar el trabajo C#/React existente y permitir volver al estado previo de la instalación. El primer destino de validación es Dota nativo en Linux x86_64, con Steam instalado por el usuario. La PC disponible tiene una instalación real del juego; su contenido no se modificó.
+Ofrecer una aplicación Linux para administrar los mismos mods cosméticos que el proyecto Windows, conservar el trabajo C#/React existente y permitir volver al estado previo de la instalación. El primer destino de validación es Dota nativo en Linux x86_64, con Steam instalado por el usuario. La PC disponible tiene una instalación real del juego; hay un paquete combinado instalado de forma reversible.
 
 El shell Linux usa React en el navegador local y C#/.NET como backend. Esto permite avanzar sin introducir una reescritura Rust/JavaScript del núcleo. Los servicios Windows acoplados a UI se portan por función: cambiar `net8.0-windows` directamente no elimina WinForms, WebView2, registro, ACL, herramientas `.exe`, updater ni dependencias nativas.
 
@@ -10,9 +10,9 @@ El shell Linux usa React en el navegador local y C#/.NET como backend. Esto perm
 
 Hecho en código: proyectos separados; exclusión del glob Windows; detección nativa/Flatpak y bibliotecas adicionales; rutas XDG; CLI; host local autenticado; página React con tokens y fuente originales; VPK administrado; descargas verificadas; generación por recetas/ZIP; parcheador de héroes original enlazado; instalación/desactivación experimentales; journal y recuperación; detección de cambios y reaplicación manual; límites FPS; fuentes de pruebas; scripts de build/instalación; CI que no compila.
 
-**Verificado localmente:** restore, typecheck/build Linux, publicación self-contained, 17 pruebas NUnit, instalación por usuario y flujos Chromium. La lectura selectiva de items_game mediante C# también pasó su CRC.
+**Verificado localmente:** restore, typecheck/build Linux, publicación self-contained, 25 pruebas NUnit, instalación por usuario y flujos Chromium. La lectura selectiva de items_game mediante C# también pasó su CRC.
 
-**Pendiente:** instalación de un mod cosmético dentro del juego y paridad completa. No debe marcarse como aplicación terminada.
+**Pendiente:** comprobación visual final en partida y paridad completa. No debe marcarse como aplicación terminada.
 
 ## Fase 1: validar la base
 
@@ -40,7 +40,7 @@ Criterio de salida: instalación, resultado visual, desactivación y recuperaci�
 | Área | Trabajo restante | Criterio de aceptación |
 |---|---|---|
 | ModsPack de un clic | Conectar manifiestos reales, mirrors, esquema de hashes y versión instalada; generación/rebase de índices | Descargar/aplicar/desactivar una versión conocida y detectar una nueva |
-| Galería de héroes | Adaptar bridge de las pantallas React, catálogo, previews, favoritos y selección por slots | Misma selección produce el mismo contenido que el pipeline original |
+| Galería de héroes | Bridge, catálogo, favoritos, slots y estilos implementados; ampliar matriz de combinaciones | Comparar casos adicionales con el pipeline Windows |
 | Arcanas/Personas/Prismatic | Portar resolutores, exclusiones, compatibilidad y overrides específicos | Matriz de casos reales validada por categoría |
 | Mods misceláneos | Conectar terrenos, clima, HUD, música, cursores, couriers, wards y efectos | Cada categoría se genera, activa y revierte independientemente |
 | Orden y conflictos | Compartir reglas de prioridad, resolución, estado activo y presets | Conflictos reproducibles y resultados deterministas |
@@ -70,3 +70,7 @@ Publicar una beta Linux identificada como experimental después de superar las p
 ## Orden de ejecución y alcance
 
 El orden crítico es base compilada → VPK independiente → montaje/restauración dentro del juego → catálogos/selección → automatismos → empaquetado/release. El código fuente adelantado de una fase no sustituye sus criterios de validación. La instrucción posterior autorizó preparar la prueba completa: se compiló y se validó la base local. Las fases que requieren resultados visuales de mods y paridad siguen pendientes.
+
+## Galería integrada — 11 octubre 2026
+
+Se reutilizó la galería React original con un transporte HTTP local autenticado. Se añadieron guardado automático, presets, progreso/cancelación y recomposición desde base inmutable. Prioridades, variantes, slots bloqueados, modelo de cabeza Planetfall y protección de otros héroes tienen pruebas. Quedan paquetes cifrados/divididos, rebase automático después de actualizaciones y validación visual de más combinaciones.

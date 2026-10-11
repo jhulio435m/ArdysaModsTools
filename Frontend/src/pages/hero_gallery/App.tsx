@@ -4,7 +4,7 @@ import { useLocale } from "../../bridge/i18n";
 import { AlertModal, LogModal } from "./AlertModal";
 import { CachingOverlay } from "./CachingOverlay";
 import { ConfirmModal } from "./ConfirmModal";
-import { filterHeroes, hasAnySelection } from "./helpers";
+import { filterHeroes, hasAnySelection, getSetCategory } from "./helpers";
 import { Header } from "./Header";
 import { HeroGrid } from "./HeroGrid";
 import { LatestUpdatesCarousel } from "./LatestUpdatesCarousel";
@@ -20,13 +20,14 @@ import {
    selectSet,
    store,
    toggleFavorite,
+   toggleItem, toggleBase, togglePrismatic, toggleEffect,
 } from "./store";
 import { StylePreviewModal } from "./StylePreviewModal";
 import { TitleBar } from "./TitleBar";
 import type { FilterCategory } from "./types";
 import css from "./gallery.module.css";
 
-export function App() {
+export function App({ linux = false }: { linux?: boolean } = {}) {
    const { t } = useLocale();
    const heroes = store.use((s) => s.heroes);
    const selections = store.use((s) => s.selections);
@@ -42,6 +43,7 @@ export function App() {
    const cachingStatus = store.use((s) => s.cachingStatus);
    const alert = store.use((s) => s.alert);
    const generationLogLines = store.use((s) => s.generationLogLines);
+   const generationBusy = store.use(s => s.generationBusy);
    const cooldown = store.use((s) => s.cooldown);
 
    const [logModalOpen, setLogModalOpen] = useState(false);
@@ -83,7 +85,14 @@ export function App() {
                case "Enter": {
                   e.preventDefault();
                   const hero = s.heroes.find((h) => h.id === s.modalHeroId);
-                  if (hero) selectSet(hero, s.focusedSetIndex);
+                  if (hero) {
+                     const category = getSetCategory(hero.sets[s.focusedSetIndex]);
+                     if (category === "item") toggleItem(hero, s.focusedSetIndex);
+                     else if (category === "basehero") toggleBase(hero, s.focusedSetIndex);
+                     else if (category === "prismatic") togglePrismatic(hero, s.focusedSetIndex);
+                     else if (category === "abilityeffect") toggleEffect(hero, s.focusedSetIndex);
+                     else selectSet(hero, s.focusedSetIndex);
+                  }
                   closeModal();
                   break;
                }
@@ -126,6 +135,7 @@ export function App() {
       <>
          <div className={css.bgfx} aria-hidden="true" />
          <TitleBar />
+         {linux && <div className={css.linuxToolbar}><a href="/">Herramientas e instalación</a><span>Elige un set, sus piezas y una base; pulsa Aplicar selección con Dota cerrado.</span></div>}
 
          <Header
             filter={currentFilter}
@@ -161,7 +171,7 @@ export function App() {
             <span id="versionText">{version}</span>
          </footer>
 
-         {cachingVisible && <CachingOverlay current={cachingStatus.current} total={cachingStatus.total} />}
+         {cachingVisible && <CachingOverlay current={cachingStatus.current} total={cachingStatus.total} status={linux ? status : undefined} onCancel={linux && generationBusy ? () => send("cancel") : undefined} />}
 
          <ConfirmModal />
 

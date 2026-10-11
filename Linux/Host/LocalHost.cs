@@ -10,6 +10,7 @@ namespace ArdysaModsTools.Linux;
 
 internal static class LocalHost
 {
+    public sealed record GalleryRequest(Dictionary<string, GallerySelection> Selections, string[]? Favorites = null);
     public sealed record CatalogRequest(string HeroId, string AssetPath, string Output);
     public sealed record SessionRequest(string Token);
     public sealed record FileRequest(string Input, string Output);
@@ -43,6 +44,7 @@ internal static class LocalHost
         var origin = "";
         using var operationGate = new SemaphoreSlim(1, 1);
         var manager = new ModManager();
+        CancellationTokenSource? galleryCancellation = null;
         string Root() => preferences.Load().DotaRoot ?? new SteamDetector().Detect().Select(i => i.Root).SingleOrDefault()
             ?? throw new IOException("Select a Dota installation first.");
         bool TokenMatches(string? value) => value is not null && value.Length == token.Length
@@ -56,7 +58,7 @@ internal static class LocalHost
             { context.Response.StatusCode = 403; return; }
             context.Response.Headers["X-Content-Type-Options"] = "nosniff";
             context.Response.Headers["Referrer-Policy"] = "no-referrer";
-            context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
+            context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https://cdn.ardysamods.my.id https://cdn2.ardysamods.my.id https://cdn.cloudflare.steamstatic.com https://cdn.akamai.steamstatic.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
             context.Response.Headers.CacheControl = "no-store";
             if (context.Request.Path.StartsWithSegments("/api"))
             {
@@ -68,7 +70,7 @@ internal static class LocalHost
             var locked = false;
             try
             {
-                if (context.Request.Path.StartsWithSegments("/api") && context.Request.Method != "GET")
+                if (context.Request.Path.StartsWithSegments("/api") && context.Request.Method != "GET" && context.Request.Path != "/api/gallery/cancel")
                 {
                     locked = await operationGate.WaitAsync(0, context.RequestAborted);
                     if (!locked) { context.Response.StatusCode = 409; await context.Response.WriteAsJsonAsync(new { error = "An operation is already running." }); return; }
@@ -93,6 +95,66 @@ internal static class LocalHost
         app.MapGet("/api/catalog", async (CancellationToken cancellation) => await catalog.LoadAsync(cancellation));
         app.MapPost("/api/catalog/generate", async (CatalogRequest value, CancellationToken cancellation) =>
         { await catalog.GenerateAsync(Root(), value.HeroId, value.AssetPath, value.Output, cancellation); return Results.Ok(); });
+        var gallery = new GalleryStore();
+        var galleryLog = new List<string>();
+        var galleryBusy = false;
+        app.MapGet("/api/gallery", async (CancellationToken cancellation) => new { heroes = await catalog.LoadAsync(cancellation), state = gallery.Load() });
+        app.MapGet("/api/gallery/progress", () => { lock (galleryLog) return new { busy = galleryBusy, lines = galleryLog.ToArray() }; });
+        app.MapPost("/api/gallery/save", async (GalleryRequest value, CancellationToken cancellation) =>
+        {
+            GalleryStore.Validate(value.Selections, await catalog.LoadAsync(cancellation));
+            var previous = gallery.Load();
+            gallery.Save(previous with { Draft = value.Selections, Favorites = value.Favorites ?? previous.Favorites });
+            return Results.Ok();
+        });
+        app.MapPost("/api/gallery/cancel", () => { galleryCancellation?.Cancel(); return Results.Ok(); });
+        app.MapPost("/api/gallery/apply", async (GalleryRequest value, CancellationToken cancellation) =>
+        {
+            var root = Root();
+            var preference = preferences.Load();
+            if (!preference.ExperimentalMount) throw new InvalidOperationException("Habilita la instalación experimental en Herramientas → Mods.");
+            var status = manager.Status(root);
+            if (status.GameRunning) throw new InvalidOperationException("Cierra Dota antes de aplicar la selección.");
+            if (status.RecoveryRequired || status.BuildChanged || status.PatchChanged)
+                throw new InvalidOperationException("Revisa la instalación en Herramientas antes de aplicar cambios.");
+            var heroes = await catalog.LoadAsync(cancellation);
+            GalleryStore.Validate(value.Selections, heroes);
+            var state = gallery.Load();
+            Directory.CreateDirectory(gallery.DirectoryPath);
+            var installed = Path.Combine(root, "game/_ArdysaModsLinux/pak01_dir.vpk");
+            if (state.InstalledHash is not null && File.Exists(installed) && !GalleryStore.Hash(installed).Equals(state.InstalledHash, StringComparison.OrdinalIgnoreCase))
+                throw new IOException("El paquete activo cambió fuera del editor. Conserva tu selección y revisa la instalación.");
+            if (state.BuildId is not null && state.BuildId != SteamDetector.BuildId(root))
+                throw new IOException("Dota cambió de versión. Hay que regenerar la base del editor antes de aplicar.");
+            LinuxPaths.EnsureNoLinks(gallery.BaselineVpk);
+            if (!File.Exists(gallery.BaselineVpk) && state.Baseline.Count > 0)
+                throw new IOException("Falta el respaldo del editor. Conserva tu selección antes de recuperar la base.");
+            if (!File.Exists(gallery.BaselineVpk) && File.Exists(installed)) File.Copy(installed, gallery.BaselineVpk);
+            if (File.Exists(gallery.BaselineVpk))
+            {
+                var baselineHash = GalleryStore.Hash(gallery.BaselineVpk);
+                if (state.BaselineHash is not null && !baselineHash.Equals(state.BaselineHash, StringComparison.OrdinalIgnoreCase))
+                    throw new IOException("El respaldo del editor cambió. No se modificó Dota.");
+                state = state with { BaselineHash = baselineHash };
+            }
+            state = state with { BuildId = SteamDetector.BuildId(root) };
+            gallery.Save(state with { Draft = value.Selections, Favorites = value.Favorites ?? state.Favorites });
+            var output = Path.Combine(gallery.DirectoryPath, "selection-" + Guid.NewGuid().ToString("N") + "_dir.vpk");
+            lock (galleryLog) { galleryLog.Clear(); galleryBusy = true; }
+            using var generationCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
+            galleryCancellation = generationCancellation;
+            try
+            {
+                await new GalleryComposer().GenerateAsync(root, gallery, state, value.Selections, heroes, output,
+                    line => { lock (galleryLog) { galleryLog.Add(line); if (galleryLog.Count > 300) galleryLog.RemoveAt(0); } }, generationCancellation.Token);
+                await manager.InstallAsync(root, output, preference.ExperimentalMount, generationCancellation.Token);
+                gallery.Save(state with { Draft = value.Selections, Applied = value.Selections,
+                    Favorites = value.Favorites ?? state.Favorites, InstalledHash = GalleryStore.Hash(installed) });
+                return Results.Ok(new { message = "Selección instalada. Puedes abrir Dota.", heroes = value.Selections.Count });
+            }
+            catch (OperationCanceledException) { throw new InvalidOperationException("Operación cancelada. Tu selección sigue guardada."); }
+            finally { galleryCancellation = null; lock (galleryLog) galleryBusy = false; if (File.Exists(output)) File.Delete(output); }
+        });
         app.MapGet("/api/detect", () => new SteamDetector().Detect());
         app.MapGet("/api/preferences", preferences.Load);
         app.MapPost("/api/preferences", (Preferences value) => { preferences.Save(value); return Results.Ok(); });
@@ -134,7 +196,7 @@ internal static class LocalHost
         Console.WriteLine($"ArdysaModsTools Linux listening locally at {origin}. Close with Ctrl+C.");
         try
         {
-            var launchUrl = origin + "/#session=" + token;
+            var launchUrl = origin + "/gallery.html#session=" + token;
             if (sessionFile is not null)
             {
                 LinuxPaths.EnsureNoLinks(sessionFile);

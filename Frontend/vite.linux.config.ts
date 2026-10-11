@@ -7,7 +7,7 @@ export default defineConfig({
    build: {
       outDir: "../Linux/Host/wwwroot",
       emptyOutDir: true,
-      rollupOptions: { input: "src/pages/linux/index.html" },
+      rollupOptions: { input: ["src/pages/linux/index.html", "src/pages/linux/gallery.html"] },
       target: "es2020",
    },
 });

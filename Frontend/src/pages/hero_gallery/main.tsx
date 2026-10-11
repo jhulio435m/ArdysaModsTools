@@ -34,7 +34,7 @@ expose({
    },
 
    resetCooldown: () => {
-      setCooldown({ active: false, remainingSeconds: 0, totalSeconds: 1800 });
+      setCooldown({ active: false, remainingSeconds: 0, totalSeconds: 1800, dailyUsed: 0, dailyMax: 0, isDailyLimit: false });
    },
 
    showCachingOverlay: () => store.set({ cachingVisible: true, cachingStatus: { current: 0, total: 0 } }),

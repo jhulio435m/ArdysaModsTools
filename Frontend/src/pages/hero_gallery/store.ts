@@ -21,13 +21,15 @@ export type ConfirmState =
 
 export type StylePreviewState = {
    heroId: string;
-   tileType: "set" | "persona" | "item" | "base" | "prismatic";
+   tileType: TileType;
    groupIndices: number[];
    group: string;
    groupCover: string | null;
 } | null;
 
 export const store = createStore<{
+   generationBusy: boolean;
+   canApplyEmpty: boolean;
    heroes: Hero[];
    selections: Selections;
    favorites: Set<string>;
@@ -58,6 +60,8 @@ export const store = createStore<{
 
    cooldown: CooldownState;
 }>({
+   generationBusy: false,
+   canApplyEmpty: false,
    heroes: [],
    selections: {},
    favorites: new Set(),
@@ -102,7 +106,7 @@ function withCleanup(selections: Selections, heroId: string): Selections {
 function updateSelection(heroId: string, mutate: (sel: HeroSelectionState) => HeroSelectionState) {
    const s = store.get();
    const current = getHeroSelection(s.selections, heroId);
-   const next = mutate({ ...current, items: [...current.items] });
+   const next = mutate({ ...current, items: [...current.items], effects: [...(current.effects ?? [])] });
    const selections = withCleanup({ ...s.selections, [heroId]: next }, heroId);
    store.set({ selections });
    notifySelectionChanged();
@@ -129,6 +133,12 @@ export function toggleItem(hero: Hero, setIndex: number) {
       return { ...s, items: [...s.items.filter((i) => !conflicts.has(i)), setIndex] };
    });
    store.set({ focusedSetIndex: setIndex });
+}
+
+export function toggleEffect(hero: Hero, setIndex: number) {
+   updateSelection(hero.id, (s) => ({ ...s, effects: (s.effects ?? []).includes(setIndex)
+      ? s.effects!.filter(i => i !== setIndex)
+      : [...(s.effects ?? []).filter(i => hero.sets[i]?.tag !== hero.sets[setIndex]?.tag), setIndex] }));
 }
 
 export function toggleBase(hero: Hero, setIndex: number) {
@@ -274,19 +284,20 @@ export function selectStyleFromPreview(hero: Hero, idx: number) {
    if (!sp) return;
    const { tileType, groupIndices } = sp;
 
+   const selected = getHeroSelection(store.get().selections, hero.id);
+   // Selecting a style is idempotent; clearing it has its own explicit control.
    if (tileType === "item") {
-      const sel = getHeroSelection(store.get().selections, hero.id);
-      if (isPersonaActive(hero, sel)) return;
-      if (!sel.items.includes(idx)) {
-         updateSelection(hero.id, (s) => ({ ...s, items: s.items.filter((i) => !groupIndices.includes(i)) }));
-      }
+      if (isPersonaActive(hero, selected) || selected.items.includes(idx)) return;
+      updateSelection(hero.id, s => ({ ...s, items: s.items.filter(i => !groupIndices.includes(i)) }));
       toggleItem(hero, idx);
+   } else if (tileType === "effect") {
+      if (!(selected.effects ?? []).includes(idx)) toggleEffect(hero, idx);
    } else if (tileType === "base") {
-      toggleBase(hero, idx);
+      if (selected.base !== idx) toggleBase(hero, idx);
    } else if (tileType === "prismatic") {
-      togglePrismatic(hero, idx);
+      if (selected.prismatic !== idx) togglePrismatic(hero, idx);
    } else {
-      selectSet(hero, idx);
+      if (selected.set !== idx) selectSet(hero, idx);
    }
 }
 
@@ -295,6 +306,7 @@ export function deselectStylePreview() {
    if (!sp) return;
    const { heroId, tileType, groupIndices } = sp;
    updateSelection(heroId, (s) => {
+      if (tileType === "effect") return { ...s, effects: (s.effects ?? []).filter(i => !groupIndices.includes(i)) };
       if (tileType === "item") return { ...s, items: s.items.filter((i) => !groupIndices.includes(i)) };
       if (tileType === "base") return s.base != null && groupIndices.includes(s.base) ? { ...s, base: null, prismatic: null } : s;
       if (tileType === "prismatic") return s.prismatic != null && groupIndices.includes(s.prismatic) ? { ...s, prismatic: null } : s;
@@ -372,7 +384,7 @@ export function requestGenerate() {
    for (const [id, sel] of Object.entries(s.selections)) {
       if (hasAnySelection(sel)) active[id] = sel;
    }
-   if (Object.keys(active).length === 0) {
+   if (Object.keys(active).length === 0 && !s.canApplyEmpty) {
       store.set({ status: "Please select at least one hero" });
       return;
    }

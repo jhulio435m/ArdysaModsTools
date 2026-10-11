@@ -2,17 +2,17 @@
 
 Fork independiente de [Anneardysa/ArdysaModsTools](https://github.com/Anneardysa/ArdysaModsTools), con licencia GPL-3.0-or-later. Se conservan la licencia y los avisos originales. Esta rama añade una entrada Linux y conserva la aplicación Windows.
 
-**Estado: versión experimental compilada, instalada por usuario y verificada localmente para pruebas.** Pasaron 17 pruebas NUnit, el typecheck/build Linux y los flujos principales en Chromium. No se ha instalado un mod cosmético en Dota ni se ha validado su carga dentro del juego. No hay release pública de ejecutables. Consulta [TESTING.md](TESTING.md) para abrirla y probarla.
+**Estado: versión experimental instalada con galería editable.** Pasaron 25 pruebas NUnit, una prueba de selección frontend, typecheck/build Linux y los flujos de galería en Chromium. En esta PC hay un paquete combinado instalado para 125 de 127 héroes. La apariencia final en partida requiere prueba del usuario. No hay release pública de ejecutables. Consulta [TESTING.md](TESTING.md).
 
 ## Arquitectura
 
 - `Core/`: biblioteca `net8.0` sin WinForms, WebView2, registro, P/Invoke ni herramientas Windows. Comparte por enlace los helpers KeyValues y el parcheador de héroes originales; no los duplica.
 - `Host/`: ejecutable CLI y host ASP.NET local. Escucha exclusivamente en `127.0.0.1` con un puerto asignado por el sistema; abre la interfaz mediante `xdg-open`.
 - `../Frontend/src/pages/linux/`: interfaz React que reutiliza los tokens y la tipografía del proyecto. Se sirve desde el host local en el navegador de Linux. No requiere Electron, Wine, Proton ni WebView2 para la aplicación.
-- `Tests/`: 17 pruebas NUnit aprobadas, con fixtures temporales independientes del juego real.
+- `Tests/`: 25 pruebas NUnit aprobadas, con fixtures temporales independientes del juego real.
 - `scripts/`: revisión estática, compilación explícita e instalación de artefactos ya compilados.
 
-El frontend original para WebView2 sigue separado. La nueva interfaz Linux no representa todavía todas las funciones de esas pantallas. Consulta [PLAN.md](PLAN.md) para la matriz de paridad y los criterios de aceptación.
+La galería React original se reutiliza mediante un bridge local; WebView2 sigue disponible para Windows. Linux no representa todavía todas las funciones de la aplicación Windows. Consulta [PLAN.md](PLAN.md) para la matriz de paridad y los criterios de aceptación.
 
 ## Funciones disponibles para probar
 
@@ -28,13 +28,13 @@ El frontend original para WebView2 sigue separado. La nueva interfaz Linux no re
 | Recuperación | Journal, copias, comprobación de conflictos y rollback | Interrupciones de proceso y fallos reales del sistema de archivos |
 | Cambios de Dota | Aviso de build/configuración cambiados y reaplicación manual | Verificar después de una actualización real |
 | FPS | Bloque propio de `fps_max` y `fps_max_ui` en `autoexec.cfg` | Verificar lectura por el juego |
-| Interfaz | Detección, preferencias, mods, VPK, recetas, descargas y FPS | Typecheck/build/Chromium aprobados; probar mods reales |
+| Interfaz | Galería editable, estilos, favoritos, presets, detección, VPK, recetas y FPS | Chromium aprobado; apariencia final en partida pendiente |
 
 ## Límites explícitos
 
 - El montaje Linux es una hipótesis de implementación que debe validarse. Se modifica `game/dota/gameinfo.gi` mediante una entrada `Game _ArdysaModsLinux`; **no se copian las firmas, hashes o plantillas Windows ni se altera `dota.signatures`**. Si el juego rechaza esta configuración, se revisa el método antes de activar automatismos.
 - El selector básico incluye variantes de estilo publicadas como ZIP completos y descarga ZIP completos desde el catálogo original y genera un set de héroe con SHA-256 verificado. Los archivos cifrados y divididos no están soportados.
-- La galería visual, selección por slots, Personas, Prismatic, todos los mods misceláneos y el ModsPack automático no están conectados todavía al host Linux.
+- La galería original está conectada al host Linux: sets, piezas por slot, héroe base, estilos, favoritos, efectos y prismatic. Solo admite assets ZIP completos compatibles; Personas y combinaciones particulares necesitan validación adicional. Los mods misceláneos, ModsPack automático y updater no tienen paridad completa.
 - Las recetas esperan URLs y hashes de fuentes confiables. El ejemplo vacío documenta el formato; no es un mod listo para instalar.
 - El escritor crea VPK de archivo único con hasta `uint.MaxValue` bytes de datos. Para packs mayores se necesita implementar salida dividida. El lector sí admite paquetes divididos existentes.
 - `VerifyAsync` verifica CRC de las entradas; no verifica firmas criptográficas VPK v2. Las descargas se autentican por el SHA-256 esperado, cuyo origen debe ser confiable.
@@ -125,3 +125,9 @@ No se incluyen URLs, hashes, IDs o catálogos inventados. El espejo público ori
 Los conflictos reales de modelos impiden combinar un candidato. Se conserva el primer logo del autor cuando varios sets traen versiones distintas; modelos de otro héroe sin referencia en el set se omiten en caso de conflicto. No se modifican las firmas de Windows.
 
 `--local-fallback` con `--base` conserva los sets descargados y, para héroes omitidos, selecciona modelos de cosméticos que ya existen en el VPK del juego. Solo cambia el modelo de objetos predeterminados del mismo héroe y slot; no convierte Personas. `--only ID_DEL_HERO` permite reintentar un héroe omitido. Los sonidos duplicados se resuelven a favor del héroe nombrado por la ruta del recurso.
+
+## Editor de héroes
+
+El inicio abre la galería. La selección se guarda automáticamente por rutas de assets, no por índices del catálogo. «Aplicar selección» recompone desde una copia base inmutable, descarga ZIP con SHA-256 verificado, valida CRC e instala con el juego cerrado. Quitar una selección restaura ese héroe desde la base del juego conservando los demás. Exportar/importar permite guardar presets JSON.
+
+El estado vive en `$XDG_DATA_HOME/ardysa-mods-tools/editor` y la caché en `$XDG_CACHE_HOME/ardysa-mods-tools/gallery`. La aplicación rechaza cambios externos del paquete y cambios de build respecto a la base: tras una actualización se requiere regenerar la base manualmente. No elimina esa protección ni repara silenciosamente selecciones desconocidas. En esta PC se importaron 123 selecciones; los fallbacks de Bristleback y Enigma permanecen en el paquete base.

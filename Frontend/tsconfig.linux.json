@@ -1,4 +1,9 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["src/pages/linux", "vite.config.ts", "vite.linux.config.ts"]
+  "include": [
+    "src/pages/linux",
+    "vite.config.ts",
+    "vite.linux.config.ts",
+    "src/pages/hero_gallery"
+  ]
 }

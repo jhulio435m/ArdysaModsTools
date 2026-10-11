@@ -66,3 +66,12 @@ Drow combina dread.zip con base_arcana_2.zip, ambos verificados contra el SHA-25
 Paquete local: artifacts/heroes-earthshaker-drow_dir.vpk. Pasa CRC. Solo cambian los objetos 75, 76, 77, 78, 79, 80, 267, 905 y 8655 frente al paquete anterior; 26.652 bloques restantes se conservan. Los ocho modelos asignados a las piezas solicitadas existen en el paquete o el juego. El cuerpo y accesorios restaurados de Earthshaker coinciden con sus ZIP originales. Apariencia final pendiente de prueba dentro del juego; esta combinación todavía se prepara fuera del selector gráfico.
 
 hero-overlay permite --items ID,ID para limitar bloques de la tabla; los recursos del ZIP completo siguen copiándose. Esta opción no es un filtro de recursos por slot.
+
+## Galería Linux integrada — 11 octubre 2026
+
+- 25 pruebas NUnit y una prueba frontend pasan; esta última verifica que elegir dos veces el mismo estilo conserva la selección y que quitarlo explícitamente funciona.
+- Typecheck y bundle Linux aprobados. Auditoría npm: cero vulnerabilidades conocidas.
+- Chromium: 126 tarjetas, 123 selecciones importadas válidas, estilos persistentes tras recarga, Master of Madness conservado, exportación JSON, teclado, móvil sin overflow y cero errores de página.
+- Aplicar con Dota abierto fue rechazado correctamente. El paquete del juego no se modificó durante esta integración.
+- Recomposición con ZIP reales de Earthshaker/Drow: CRC aprobado; se conservan los recursos anteriores y los bloques de los otros héroes. Evidencia local en artifacts/gallery-integration/validation.json y artifacts/gallery-browser-validation.json (no se versionan).
+- La galería ya prepara estas combinaciones mediante selección gráfica. La apariencia final dentro de una partida y todos los casos del catálogo aún requieren validación.

@@ -3,8 +3,8 @@ using System.Text.Json;
 
 namespace ArdysaModsTools.Linux;
 
-public sealed record CatalogSet(string Name, string AssetPath, string Sha256);
-public sealed record CatalogHero(string Id, string Name, int[] ItemIds, CatalogSet[] Sets);
+public sealed record CatalogSet(string Name, string AssetPath, string Sha256, string? DisplayName = null, string Category = "legacyset", string? Tag = null, string? ThumbnailUrl = null, string? StyleGroup = null, string? StyleLabel = null, string? Key = null, string[]? Locks = null);
+public sealed record CatalogHero(string Id, string Name, int[] ItemIds, CatalogSet[] Sets, string Attribute = "universal", int? Method = null, Dictionary<string, int>? SetMethods = null, string[][]? Incompatible = null);
 
 /// <summary>Reads the original public catalog; downloads stay pinned to its SHA-256 manifest.</summary>
 public sealed class HeroCatalog
@@ -57,11 +57,31 @@ public sealed class HeroCatalog
                 if (!hashes.TryGetProperty(path, out var entry)) continue;
                 var hash = entry.GetProperty("sha256").GetString() ?? "";
                 if (hash.Length != 64 || hash.Any(c => !Uri.IsHexDigit(c))) continue;
-                sets.Add(new CatalogSet(set.Name + " · " + Path.GetFileNameWithoutExtension(path), path, hash));
+                var stem = Path.GetFileNameWithoutExtension(path);
+                var category = stem.StartsWith("effect_") ? "abilityeffect" : stem.StartsWith("base_") ? "basehero"
+                    : stem.StartsWith("item_") ? "item" : stem.StartsWith("prismatic_") ? "prismatic"
+                    : stem.StartsWith("persona") || path.Contains("/persona/") ? "persona" : stem.StartsWith("mix_") ? "customset" : "legacyset";
+                var display = hero.TryGetProperty("set_names", out var names) && names.TryGetProperty(stem, out var label) ? label.GetString() : stem;
+                var thumb = set.Value.EnumerateArray().Select(v => v.GetString()).FirstOrDefault(v => v is not null && (v.EndsWith(".png") || v.EndsWith(".jpg") || v.EndsWith(".webp")));
+                var tag = category is "item" or "abilityeffect" ? string.Join('_', stem.Split('_').Skip(1).Take(1)) : null;
+                var key = set.Name.Split(" / ")[0];
+                string[]? locks = null;
+                if (hero.TryGetProperty("base_locks", out var lockMap) && lockMap.TryGetProperty(stem, out var locked)) locks = locked.EnumerateArray().Select(v => v.GetString()!).ToArray();
+                var style = stem.EndsWith("_1") ? "Estilo 1" : stem.EndsWith("_2") ? "Estilo 2" : null;
+                if (hero.GetProperty("name").GetString() == "Drow Ranger" && stem == "base_arcana_2") style = "Master of Madness";
+                if (hero.GetProperty("name").GetString() == "Drow Ranger" && stem == "base_arcana_1") style = "Cold of Heart";
+                var groupKind = category switch { "basehero" => "Base", "abilityeffect" => "Efecto " + tag, "item" => "Pieza " + tag, "prismatic" => "Prismático", _ => "Set" };
+                sets.Add(new CatalogSet(set.Name + " · " + stem, path, hash, display, category, tag, thumb,
+                    style is null ? (set.Name.Contains(" / ") ? display + " · " + groupKind + " · " + key : null) : display + " · " + groupKind, style ?? (set.Name.Contains(" / ") ? stem : null), key, locks));
             }
             result.Add(new CatalogHero(hero.GetProperty("used_by_heroes").GetString()!,
                 hero.GetProperty("name").GetString()!,
-                hero.GetProperty("id").EnumerateArray().Select(v => v.GetInt32()).ToArray(), sets.ToArray()));
+                hero.GetProperty("id").EnumerateArray().Select(v => v.GetInt32()).ToArray(), sets.ToArray(),
+                hero.GetProperty("primary_attr").GetString() ?? "universal",
+                hero.TryGetProperty("method", out var method) ? (method.ValueKind == JsonValueKind.Number ? method.GetInt32() : method.GetProperty("default").GetInt32()) : null,
+                hero.TryGetProperty("method", out var policy) && policy.ValueKind == JsonValueKind.Object && policy.TryGetProperty("sets", out var overrides)
+                    ? overrides.EnumerateObject().ToDictionary(v => v.Name, v => v.Value.GetInt32()) : null,
+                hero.TryGetProperty("incompatible", out var incompatible) ? incompatible.EnumerateArray().SelectMany(group => group.GetProperty("sets").EnumerateArray().SelectMany(a => group.GetProperty("with").EnumerateArray().Select(b => new[] { a.GetString()!, b.GetString()! }))).ToArray() : null));
         }
         return heroes = result.OrderBy(h => h.Name, StringComparer.Ordinal).ToArray();
     }

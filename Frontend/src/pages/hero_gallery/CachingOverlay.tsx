@@ -1,7 +1,7 @@
 import { T, translate } from "../../bridge/i18n";
 import css from "./gallery.module.css";
 
-export function CachingOverlay({ current, total }: { current: number; total: number }) {
+export function CachingOverlay({ current, total, status, onCancel }: { current: number; total: number; status?: string; onCancel?: () => void }) {
    const pct = total > 0 ? Math.round((current / total) * 100) : 0;
 
    return (
@@ -13,18 +13,19 @@ export function CachingOverlay({ current, total }: { current: number; total: num
                </svg>
             </div>
             <h2 className={css.coTitle}>
-               <T k="common.loadingAssets">Loading Assets</T>
+               {status ? "Procesando selección" : <T k="common.loadingAssets">Loading Assets</T>}
             </h2>
-            <p id="cachingStatus" className={css.cachingStatus}>{translate("common.preparingThumbs", "Preparing thumbnails...")}</p>
-            <div className={css.coBar}>
+            <p id="cachingStatus" className={css.cachingStatus}>{status || translate("common.preparingThumbs", "Preparing thumbnails...")}</p>
+            <div className={css.coBar} role="progressbar" aria-label="Procesando" aria-valuenow={total > 0 ? pct : undefined}>
                <div id="cachingBar" className={css.cachingBar} style={{ width: `${pct}%` }} />
             </div>
-            <div className={css.coMeta}>
+            <div className={css.coMeta} style={total === 0 ? { display: "none" } : undefined}>
                <span id="cachingCount">
                   {current} / {total}
                </span>
                <span id="cachingPercent">{pct}%</span>
             </div>
+            {onCancel && <button className={css.btn} type="button" onClick={onCancel}>Cancelar operación</button>}
          </div>
       </div>
    );

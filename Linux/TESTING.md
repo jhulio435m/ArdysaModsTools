@@ -1,65 +1,22 @@
-# Probar la versión Linux en esta PC
+# Probar la galería Linux
 
-La aplicación está compilada, instalada por usuario y preparada para pruebas locales. El port sigue siendo experimental y no tiene todavía toda la galería/catálogos del original.
+Busca **ArdysaModsTools Linux** en el menú, o ejecuta `~/.local/bin/ardysa-mods-tools serve`. El navegador abre la galería; conserva la terminal mientras la usas y ciérrala con Ctrl+C al terminar.
 
-## Abrir
+1. Elige un héroe y abre sus opciones.
+2. Selecciona sets completos, piezas o héroe base. En las arcanas con estilos, elige el estilo deseado y pulsa «Hecho».
+3. Cierra Dota antes de pulsar **Aplicar selección**. La aplicación descarga los assets, verifica y recompone el paquete conservando los demás héroes.
+4. Cuando termine, abre Dota y comprueba el héroe con su equipo predeterminado.
 
-Busca **ArdysaModsTools Linux** en el menú de aplicaciones, o ejecuta:
+La selección se guarda automáticamente. Exportar/importar permite guardar presets; favoritos ayuda a localizar héroes. «Herramientas e instalación» abre detección, desactivación, recuperación y herramientas VPK.
 
-```bash
-~/.local/bin/ardysa-mods-tools serve
-```
+En esta PC quedan seleccionados Earthshaker Planetfall con su cabeza y Drow Dread Retribution / Master of Madness. El paquete ya instalado sigue activo; la actualización de la aplicación no modifica el juego mientras está abierto. La apariencia final de cabeza, efectos y estilos en partida todavía requiere comprobación del usuario.
 
-Se abre el navegador y la terminal mantiene el servidor local. Para cerrar la aplicación, usa `Ctrl+C` en esa terminal. Cada inicio abre una sesión nueva; entrar solo a una URL guardada sin el enlace de inicio no autentica la sesión.
+## Alcance y recuperación
 
-## Prueba inicial sin modificar Dota
+El port es experimental. Admite ZIP completos del catálogo original; los paquetes cifrados/divididos y la paridad completa de mods misceláneos/updater siguen pendientes. Tras cambios de build o un reemplazo externo del VPK, aplicar se bloquea para preservar la base. Hay que revisar/regenerar esa base antes de continuar.
 
-1. En “Tu instalación”, confirma la carpeta detectada y pulsa “Guardar”.
-2. Abre “Archivos VPK” y usa el paquete de muestra creado en `artifacts/samples/sample_dir.vpk` dentro del checkout.
-3. Pulsa “Verificar integridad” y “Ver contenido”. Este paquete solo contiene un archivo de texto para comprobar herramientas; **no es un mod cosmético y no se instala en Dota**.
-4. Prueba “Extraer paquete” en una carpeta nueva/vacía fuera del juego. El contenido debe coincidir con el texto de prueba.
-5. Prueba “Crear paquete” con una carpeta pequeña y una ruta nueva de salida fuera de esa carpeta.
+Para desactivar, cierra Dota y usa las herramientas de instalación. El montaje propio está en `game/_ArdysaModsLinux`; la configuración original se conserva en el estado administrado. Si hay una transacción interrumpida, usa recuperación sin borrar sus respaldos.
 
-La aplicación funciona con Dota abierto para estas herramientas. La instalación de mods y los cambios de FPS se bloquean mientras el juego está abierto. No hace falta cerrar tu partida para explorar la interfaz.
+## Evidencia local
 
-## Probar un mod real
-
-Necesitas un VPK cosmético real, de origen confiable y compatible con la versión del juego. No se descargó ni se aplicó uno automáticamente. Si el VPK es dividido, todos sus archivos deben estar juntos.
-
-1. Cierra Dota y espera a que Steam termine cualquier actualización.
-2. Verifica el paquete en “Archivos VPK”.
-3. En “Mods”, marca “Habilitar la instalación experimental”, introduce su ruta y pulsa “Instalar paquete”.
-4. Abre Dota y comprueba el resultado visual. **Este montaje dentro del cliente Linux todavía necesita esa prueba.**
-5. Cierra Dota, pulsa “Desactivar mods” y comprueba que la configuración vuelve al estado anterior.
-
-Si aparece un conflicto, conserva el estado y los respaldos; no borres manualmente archivos del juego para forzar la instalación. Revisa `Linux/README.md` para el procedimiento de recuperación.
-
-## Estado verificado
-
-- Compilación Release del núcleo y publicación Linux x86_64 con runtime incluido.
-- 17 pruebas NUnit aprobadas con fixtures en directorios temporales; no usan la instalación real.
-- Typecheck y build de la interfaz Linux aprobados.
-- Flujos Chromium: sesión, detección, preferencias, verificación/listado/extracción/creación VPK, rechazos de sesión/origen y de descarga a host no permitido.
-- Capturas de escritorio y móvil inspeccionadas; sin errores de JavaScript ni desbordamiento horizontal en la prueba.
-- Lectura/extracción selectiva de `items_game.txt` desde el VPK real mediante el ejecutable C#, con CRC verificado y salida fuera del juego.
-- Auditoría npm sin vulnerabilidades; revisión de paquetes .NET sin hallazgos conocidos en las fuentes consultadas.
-
-No se ha validado un mod cosmético dentro de Dota. No hay release pública de binarios ni paridad completa con la galería original.
-
-## Descargar desde el catálogo original
-
-En **Generar selección**, pulsa **Cargar catálogo**, elige héroe y set, y escribe una ruta nueva para el VPK. **Descargar y generar set** verifica el SHA-256 del manifiesto del CDN original y usa el items_game de la instalación actual. Después puedes ir a **Mods** e instalar ese VPK con el montaje experimental habilitado.
-
-Este primer selector maneja ZIP completos con index.txt. No incluye paquetes divididos, cifrados, estilos/personas ni el ModsPack completo. Blightfall de Abaddon fue descargado y generado como prueba real; la apariencia dentro de Dota aún requiere comprobación.
-
-## Selección instalada para abrir Dota
-
-El paquete combinado preparado el 11 de octubre está en `artifacts/heroes-final_dir.vpk`; el informe completo está en `artifacts/heroes-final-report.json`. Incluye 125 de los 126 héroes del catálogo: 123 con paquetes del CDN y Bristleback/Enigma con modelos cosméticos del juego. La instalación nativa incluye además a Largo, ausente del catálogo y sin modelos cosméticos alternativos instalados: la cobertura real es 125/127. Kez conserva su apariencia original porque no tiene alternativas en el catálogo ni modelos de cosméticos alternativos en esta instalación.
-
-Esta selección reemplaza objetos predeterminados; piezas equipadas de otros sets pueden seguir mostrando sus propios modelos. La aplicación puede desactivar todo y restaurar el gameinfo original con su respaldo. No hace falta ejecutar la aplicación antes de cada arranque de Dota. Una actualización de Steam puede requerir reaplicar el montaje o regenerar la tabla de objetos.
-
-## Earthshaker: Planetfall en el héroe base
-
-La selección personalizada usa `Assets/models/Earthshaker/base_arcana_1.zip` (Planetfall, estilo base). El paquete preparado es `artifacts/heroes-planetfall-base_dir.vpk`; conserva la selección combinada y añade el modelo base de Earthshaker. El comando `hero-overlay --base VPK --hero npc_dota_hero_earthshaker --asset Assets/models/Earthshaker/base_arcana_1.zip --output VPK_NUEVO` verifica el hash publicado y aplica únicamente los objetos del héroe elegido; conserva la interfaz compartida del paquete y excluye el taunt compartido. La instalación requiere Dota cerrado.
-
-La selección local más reciente es `artifacts/heroes-earthshaker-drow_dir.vpk`: Earthshaker con cuerpo, accesorios y cabeza Planetfall, y Drow Ranger con Dread Retribution / Master of Madness. Con los objetos predeterminados equipados, revisar cabeza y animaciones de Earthshaker y cuerpo, piezas y efectos del estilo 2 de Drow. La apariencia final no ha sido validada visualmente por el agente.
+25 pruebas NUnit y una prueba frontend pasan. Chromium verificó 126 tarjetas, guardado de 123 selecciones, persistencia de estilos, exportación, teclado, diseño móvil sin desbordamiento y rechazo de aplicar con Dota abierto. La recomposición con assets reales se valida por CRC y comparación de bloques/recursos. Esto no sustituye la prueba visual dentro de Dota.

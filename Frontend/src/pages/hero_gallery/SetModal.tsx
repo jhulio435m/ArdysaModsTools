@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { T, useLocale } from "../../bridge/i18n";
+import { T, translate, useLocale } from "../../bridge/i18n";
 import { getSetCategory, isBaseActive, isPersonaActive } from "./helpers";
 import {
    closeModal,
@@ -10,6 +10,7 @@ import {
    store,
    toggleBase,
    toggleItem,
+   toggleEffect,
    togglePrismatic,
 } from "./store";
 import { SetCart } from "./SetCart";
@@ -31,6 +32,7 @@ function buildCategories(hero: Hero, heroSel: HeroSelectionState): Category[] {
    const custom: { set: SetEntry; idx: number }[] = [];
    const persona: { set: SetEntry; idx: number }[] = [];
    const item: { set: SetEntry; idx: number }[] = [];
+   const effect: { set: SetEntry; idx: number }[] = [];
    const base: { set: SetEntry; idx: number }[] = [];
    const prismatic: { set: SetEntry; idx: number }[] = [];
 
@@ -38,6 +40,9 @@ function buildCategories(hero: Hero, heroSel: HeroSelectionState): Category[] {
       switch (getSetCategory(set)) {
          case "persona":
             persona.push({ set, idx });
+            break;
+         case "abilityeffect":
+            effect.push({ set, idx });
             break;
          case "item":
             item.push({ set, idx });
@@ -61,6 +66,7 @@ function buildCategories(hero: Hero, heroSel: HeroSelectionState): Category[] {
    const hasItemsSelected = heroSel.items.length > 0;
 
    const categories: Category[] = [
+      { key: "effects", label: "Efectos", tileType: "effect", entries: effect, notice: null },
       { key: "legacy", label: "Legacy Set", tileType: "set", entries: legacy, notice: null },
       { key: "custom", label: "Custom Set", tileType: "set", entries: custom, notice: null },
       {
@@ -93,7 +99,7 @@ function buildCategories(hero: Hero, heroSel: HeroSelectionState): Category[] {
          locked: !baseActive,
       },
    ];
-   return categories.filter((c) => c.entries.length > 0);
+   return categories.filter((c) => c.entries.length > 0).map(c => ({ ...c, label: translate(`linux.category.${c.key}`, c.label) }));
 }
 
 const TILE = 133;
@@ -176,7 +182,7 @@ export function SetModal() {
                </svg>
             </button>
 
-            <div className={`${css.smPanel} ${css.animateScaleIn}`} style={{ maxWidth }}>
+            <div role="dialog" aria-modal="true" aria-label={hero.displayName || hero.name} className={`${css.smPanel} ${css.animateScaleIn}`} style={{ maxWidth }}>
                <div className={css.smHead}>
                   <div className={css.smHeadLeft}>
                      <img id="modalHeroImg" src={hero.thumbnail} alt="" />
@@ -229,7 +235,8 @@ export function SetModal() {
                                           isFocused={focusedSetIndex === idx}
                                           isHighlighted={highlightSetIndex === idx}
                                           onSelect={() => {
-                                             if (cat.tileType === "item") toggleItem(hero, idx);
+                                             if (cat.tileType === "effect") toggleEffect(hero, idx);
+                                             else if (cat.tileType === "item") toggleItem(hero, idx);
                                              else if (cat.tileType === "base") toggleBase(hero, idx);
                                              else if (cat.tileType === "prismatic") togglePrismatic(hero, idx);
                                              else selectSet(hero, idx);
@@ -251,6 +258,7 @@ export function SetModal() {
                      onRemoveItem={(idx) => toggleItem(hero, idx)}
                      onRemoveBase={(idx) => toggleBase(hero, idx)}
                      onRemovePrismatic={(idx) => togglePrismatic(hero, idx)}
+                     onRemoveEffect={(idx) => toggleEffect(hero, idx)}
                   />
                </div>
 

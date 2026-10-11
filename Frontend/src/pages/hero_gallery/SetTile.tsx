@@ -37,6 +37,7 @@ export function SetTile({
 
    let isSelected: boolean;
    if (hasStyles) isSelected = activeStyleIdx !== null;
+   else if (tileType === "effect") isSelected = (heroSel.effects ?? []).includes(idx);
    else if (tileType === "item") isSelected = heroSel.items.includes(idx);
    else if (tileType === "base") isSelected = heroSel.base === idx;
    else if (tileType === "prismatic") isSelected = heroSel.prismatic === idx;
@@ -59,6 +60,11 @@ export function SetTile({
             .filter(Boolean)
             .join(" ")}
          data-set-index={idx}
+         role="button"
+         tabIndex={0}
+         aria-label={displayName}
+         aria-pressed={isSelected}
+         onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); if (hasStyles) onOpenStylePreview(styleGroup!); else onSelect(); } }}
          onClick={() => (hasStyles ? onOpenStylePreview(styleGroup!) : onSelect())}
       >
          <div className={css.setTileImg}>
@@ -79,6 +85,7 @@ export function SetTile({
             {hasStyles && <span className={css.styleCountBadge}>{groupIndices.length} styles</span>}
          </div>
          <div className={css.setTileBody}>
+            <span className={css.setTileName}>{set.displayName || set.name}</span>
             {tag && <span className={tileType === "item" ? css.itemTagBadge : css.setTagBadge}>{tag}</span>}
             {statusText && <span className={css.setStatus}>{statusText}</span>}
          </div>

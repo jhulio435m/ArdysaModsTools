@@ -12,6 +12,7 @@ export function SetCart({
    onRemoveItem,
    onRemoveBase,
    onRemovePrismatic,
+   onRemoveEffect,
 }: {
    hero: Hero;
    heroSel: HeroSelectionState;
@@ -19,6 +20,7 @@ export function SetCart({
    onRemoveItem: (idx: number) => void;
    onRemoveBase: (idx: number) => void;
    onRemovePrismatic: (idx: number) => void;
+   onRemoveEffect?: (idx: number) => void;
 }) {
    const { t } = useLocale();
    const rows: Row[] = [];
@@ -34,6 +36,7 @@ export function SetCart({
       push(heroSel.set, getSetCategory(hero.sets[heroSel.set]) === "persona" ? "Persona" : "Set", onRemoveSet);
    }
    heroSel.items.forEach((idx) => push(idx, extractItemTag(hero.sets[idx]) || "Item", onRemoveItem));
+   (heroSel.effects ?? []).forEach(idx => push(idx, "Efecto", onRemoveEffect ?? (() => undefined)));
    if (heroSel.base !== null) push(heroSel.base, "Base Hero", onRemoveBase);
    if (heroSel.prismatic !== null) push(heroSel.prismatic, "Prismatic", onRemovePrismatic);
 
@@ -57,9 +60,11 @@ export function SetCart({
                         src={r.thumb}
                         alt={r.name}
                         onError={(e) => {
-                           e.currentTarget.style.visibility = "hidden";
+                           if (e.currentTarget.src !== hero.thumbnail) e.currentTarget.src = hero.thumbnail;
+                           else e.currentTarget.style.visibility = "hidden";
                         }}
                      />
+                     <span className={css.cartChipLabel}>{r.name}</span>
                      <button
                         type="button"
                         data-no-drag
