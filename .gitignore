@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+**/node_modules/
+Frontend/.vite-out/
+Linux/Host/wwwroot/
+artifacts/
+*.user
+*.log
+__pycache__/

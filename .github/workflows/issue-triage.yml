@@ -24,7 +24,7 @@ concurrency:
 jobs:
    triage:
       runs-on: ubuntu-latest
-      if: ${{ !github.event.issue.pull_request }}
+      if: github.repository == 'Anneardysa/ArdysaModsTools' && (!github.event.issue.pull_request)
       steps:
          - uses: actions/github-script@v7
            with:

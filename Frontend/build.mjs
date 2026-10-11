@@ -56,7 +56,7 @@ const requested = process.argv.slice(2);
 const pages = requested.length
    ? requested
    : readdirSync(pagesDir, { withFileTypes: true })
-        .filter((d) => d.isDirectory() && existsSync(join(pagesDir, d.name, "index.html")))
+        .filter((d) => d.name !== "linux" && d.isDirectory() && existsSync(join(pagesDir, d.name, "index.html")))
         .map((d) => d.name);
 
 if (!pages.length) {

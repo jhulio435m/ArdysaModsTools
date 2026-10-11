@@ -76,6 +76,11 @@
   <!-- EXCLUDE TEST PROJECT FILES                     -->
   <!-- ============================================== -->
   <ItemGroup>
+    <!-- Independent Linux entry point; never include its sources in the Windows app. -->
+    <Compile Remove="Linux\**" />
+    <Content Remove="Linux\**" />
+    <EmbeddedResource Remove="Linux\**" />
+    <None Remove="Linux\**" />
     <Compile Remove="Tests\**" />
     <Content Remove="Tests\**" />
     <EmbeddedResource Remove="Tests\**" />

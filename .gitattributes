@@ -3,3 +3,6 @@
 # change their content hash on checkout and make those records wrong.
 Assets/Html/vendor/tailwind.min.js -text
 Assets/Html/fonts.css              -text
+
+# Upstream sources use CRLF; treat carriage returns as line endings in diff checks.
+* whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

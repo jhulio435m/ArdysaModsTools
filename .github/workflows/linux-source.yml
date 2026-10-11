@@ -1,0 +1,18 @@
+name: Linux source checks (no compilation)
+on:
+  push:
+    branches: [linux-port]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Structural checks without compilers
+        run: python3 Linux/scripts/check-source.py
+      - name: Install prebuilt syntax parsers (no source builds)
+        run: python3 -m pip install --only-binary=:all: -r Linux/scripts/syntax-requirements.txt
+      - name: Parse CSharp and React source syntax
+        run: python3 Linux/scripts/syntax-check.py

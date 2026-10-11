@@ -34,6 +34,7 @@ permissions:
 
 jobs:
    sync-to-r2:
+      if: github.repository == 'Anneardysa/ArdysaModsTools'
       runs-on: ubuntu-latest
 
       steps:

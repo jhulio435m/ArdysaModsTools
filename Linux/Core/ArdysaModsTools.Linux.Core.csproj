@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="ValveKeyValue" Version="0.20.0.417" />
+    <Compile Include="../../Core/Interfaces/IAppLogger.cs" Link="Shared/IAppLogger.cs" />
+    <Compile Include="../../Core/Helpers/KeyValuesBlockHelper.cs" Link="Shared/KeyValuesBlockHelper.cs" />
+    <Compile Include="../../Core/Helpers/ItemsGameMerger.cs" Link="Shared/ItemsGameMerger.cs" />
+    <Compile Include="../../Core/Helpers/ItemsGameBlockIndex.cs" Link="Shared/ItemsGameBlockIndex.cs" />
+    <Compile Include="../../Core/Services/Hero/HeroSetPatcherService.cs" Link="Shared/HeroSetPatcherService.cs" />
+  </ItemGroup>
+</Project>

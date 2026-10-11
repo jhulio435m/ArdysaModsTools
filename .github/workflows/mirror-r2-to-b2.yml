@@ -59,7 +59,7 @@ jobs:
    mirror:
       runs-on: ubuntu-latest
       # A failed release sync may have left R2 half-written; mirroring that would propagate the mess.
-      if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+      if: github.repository == 'Anneardysa/ArdysaModsTools' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
 
       steps:
          - name: Install rclone
