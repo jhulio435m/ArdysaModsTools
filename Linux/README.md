@@ -75,7 +75,7 @@ El frontend Linux se compila por separado; el script original `Frontend/build.mj
 bash Linux/scripts/install.sh /ruta/absoluta/ArdysaModsTools/artifacts/linux-x64
 ```
 
-Instala por usuario en `$XDG_DATA_HOME/ardysa-mods-tools/app`, crea un enlace en `~/.local/bin` y una entrada de escritorio. Rechaza reemplazar una instalación existente. El script de instalación no compila y no modifica Dota. Después, ejecuta `ardysa-mods-tools serve` o usa la entrada del menú; conserva la terminal abierta mientras usas la interfaz.
+Instala por usuario en `$XDG_DATA_HOME/ardysa-mods-tools/app`, crea un enlace en `~/.local/bin` y una entrada de escritorio. Rechaza reemplazar una instalación existente. El script de instalación no compila y no modifica Dota. Después, usa la entrada del menú para abrir la interfaz directamente en el navegador. También puedes ejecutar `ardysa-mods-tools serve`; en ese caso conserva la terminal abierta mientras usas la interfaz.
 
 Las preferencias están en `$XDG_CONFIG_HOME/ardysa-mods-tools/preferences.json`. Si una variable XDG falta o es relativa, se usa el directorio estándar dentro de HOME. La sesión del navegador es efímera y queda en una cookie HttpOnly; el enlace de inicio utiliza un fragmento retirado por la interfaz. No hay CORS habilitado, y las mutaciones requieren el origen local esperado y sesión autenticada.
 

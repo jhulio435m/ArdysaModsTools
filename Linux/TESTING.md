@@ -1,6 +1,6 @@
 # Probar la galería Linux
 
-Busca **ArdysaModsTools Linux** en el menú, o ejecuta `~/.local/bin/ardysa-mods-tools serve`. El navegador abre la galería; conserva la terminal mientras la usas y ciérrala con Ctrl+C al terminar.
+Busca **ArdysaModsTools Linux** en el menú, o ejecuta `~/.local/bin/ardysa-mods-tools serve`. El menú abre la galería en el navegador sin depender de una terminal. El servidor local continúa mientras usas la aplicación. Si la inicias desde la CLI, conserva esa terminal y ciérrala con Ctrl+C al terminar.
 
 1. Elige un héroe y abre sus opciones.
 2. Selecciona sets completos, piezas o héroe base. En las arcanas con estilos, elige el estilo deseado y pulsa «Hecho».

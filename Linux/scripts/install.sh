@@ -17,7 +17,9 @@ if [[ -e "$desktop_path" || -L "$desktop_path" ]]; then printf '%s\n' 'Desktop e
 mkdir -p -- "$app_dir" "$HOME/.local/bin" "$data_root/applications"
 cp -a -- "$artifact_dir/." "$app_dir/"
 ln -s -- "$app_dir/ardysa-mods-tools" "$launcher"
-desktop_exec="${launcher//\\/\\\\}"
+desktop_launcher="$app_dir/desktop-launch.sh"
+install -m 755 -- "$(dirname -- "$0")/desktop-launch.sh" "$desktop_launcher"
+desktop_exec="${desktop_launcher//\\/\\\\}"
 desktop_exec="${desktop_exec//\"/\\\"}"
 desktop_exec="${desktop_exec//\$/\\\$}"
 desktop_exec="${desktop_exec//\`/\\\`}"
@@ -27,9 +29,9 @@ cat > "$desktop_path" <<EOF
 Type=Application
 Name=ArdysaModsTools Linux
 Comment=Experimental native Dota 2 mod manager
-Exec="$desktop_exec" serve
+Exec="$desktop_exec"
 Icon=applications-games
-Terminal=true
+Terminal=false
 Categories=Game;
 StartupNotify=false
 EOF
