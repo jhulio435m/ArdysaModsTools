@@ -52,3 +52,7 @@ La carga real del CDN expuso 126 héroes. Chromium seleccionó Abaddon / Blightf
 - Informe de selección local: artifacts/heroes-final-report.json. Regeneración, informe e instalación quedan preparados para la próxima prueba visual del usuario.
 
 La comprobación posterior de scripts/npc/npc_heroes.txt detectó 127 héroes reales (excluyendo base y target_dummy). Largo está fuera del catálogo original y su tabla actual solo incluye objetos predeterminados. Cobertura instalada: 125/127; Kez y Largo mantienen el aspecto original. El nuevo arranque con el paquete combinado también registró GAME y MOD apuntando al VPK del mod; no se encontraron errores de parseo de items_game en el registro revisado. La apariencia individual dentro del juego sigue pendiente de la prueba del usuario.
+
+## Earthshaker Planetfall base — 11 octubre 2026
+
+Se descargó base_arcana_1.zip y se verificó su SHA-256 contra el manifiesto original. El overlay incluye models/heroes/earthshaker/earthshaker.vmdl_c. El VPK pasa CRC; las 1.746 entradas anteriores siguen presentes, con solo tres entradas anteriores cambiadas y ninguna fuera del overlay permitido. Se comparó también la tabla de objetos antes/después para conservar los otros héroes. Las 18 pruebas pasan. Se instaló con Dota cerrado y el paquete instalado coincide byte por byte con el generado. La apariencia Planetfall dentro del juego requiere comprobación visual del usuario.
